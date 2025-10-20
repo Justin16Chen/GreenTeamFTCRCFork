@@ -20,11 +20,13 @@ public class BallColorSensor extends Sensor {
     };
     public final String sensorName;
     private ColorSensor sensor;
+    private int[] oldRgb;
     private final int[] rgb;
 
     public BallColorSensor(Hardware hardware, Telemetry telemetry, String sensorName, boolean turnedOn) {
         super(hardware, telemetry, turnedOn);
         this.sensorName = sensorName;
+        oldRgb = new int[3];
         rgb = new int[3];
     }
 
@@ -35,6 +37,7 @@ public class BallColorSensor extends Sensor {
 
     @Override
     public void cacheReading() {
+        oldRgb = rgb;
         rgb[0] = sensor.red();
         rgb[1] = sensor.green();
         rgb[2] = sensor.blue();
@@ -42,6 +45,9 @@ public class BallColorSensor extends Sensor {
 
     public boolean seesBallFromLatestCache() {
         return inRange(purpleRanges, rgb) || inRange(greenRanges, rgb);
+    }
+    public boolean firstTimeSeeingBallFromLatestCache() {
+        return seesBallFromLatestCache() && !inRange(purpleRanges, oldRgb) && !inRange(greenRanges, oldRgb);
     }
 
     private boolean inRange(int[][] range, int[] color) {

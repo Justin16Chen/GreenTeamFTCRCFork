@@ -36,11 +36,7 @@ public abstract class Sensor {
             cacheReading();
     }
 
-    public void turnOn() {
-        turnedOn = true;
-        cacheReading();
-    }
-    public void turnOff() {
-        turnedOn = false;
+    public void setTurnedOn(boolean turnOn) {
+        this.turnedOn = turnOn;
     }
 }
