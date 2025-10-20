@@ -1,0 +1,73 @@
+package org.firstinspires.ftc.teamcode.robot;
+
+import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
+// standardizes retrieving from hardware map
+// makes reusing robot components in main tele and other test teles really straightforwards
+// ensures consistency between comp and test teles
+@Config
+public class Hardware {
+    // store these as static so they can be adjusted on dashboard for ease of use
+    public static String cameraName = "webcam", frontColorSensorName = "frontColorSensor", middleColorSensorName = "middleColorSensor", backColorSensorName = "backColorSensor";
+    public static String frontLeftName = "FL", frontRightName = "FR", backLeftName = "BL", backRightName = "BR", intakeMotorName = "intake";
+    public static boolean reverseFrontLeft = false, reverseFrontRight = false, reverseBackLeft = false, reverseBackRight = true;
+    public static String leftParkServoName = "lParkServo", rightParkServoName = "rParkServo";
+    public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkWPM = 1676;
+
+    public static String intakeName = "intake";
+
+    public final HardwareMap hardwareMap;
+    public Hardware(HardwareMap hardwareMap) {
+        this.hardwareMap = hardwareMap;
+    }
+
+    public CameraName getCamera() {
+        return hardwareMap.get(WebcamName.class, cameraName);
+    }
+
+    public DcMotorEx getFLDriveMotor() {
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
+        motor.setDirection(Hardware.reverseFrontLeft ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        return motor;
+    }
+    public DcMotorEx getFRDriveMotor() {
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
+        motor.setDirection(Hardware.reverseFrontRight ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        return motor;
+    }
+    public DcMotorEx getBLDriveMotor() {
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
+        motor.setDirection(Hardware.reverseBackLeft ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        return motor;
+    }
+    public DcMotorEx getBRDriveMotor() {
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
+        motor.setDirection(Hardware.reverseBackRight ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        return motor;
+    }
+    public DcMotorEx getIntakeMotor() {
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, intakeName);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        return motor;
+    }
+    public ServoImplEx getLeftParkServo() {
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, leftParkServoName);
+        servo.setPwmRange(new PwmControl.PwmRange(leftStorePWM, leftParkPWM));
+        return servo;
+    }
+    public ServoImplEx getRightParkServo() {
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, rightParkServoName);
+        servo.setPwmRange(new PwmControl.PwmRange(rightStorePWM, rightParkWPM));
+        return servo;
+    }
+}
