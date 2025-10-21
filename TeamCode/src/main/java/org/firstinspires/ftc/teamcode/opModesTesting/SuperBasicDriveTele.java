@@ -26,7 +26,7 @@ public class SuperBasicDriveTele extends OpMode {
 
         dt = new Drivetrain(hardware, telemetry);
         dt.declareHardware();
-        dt.setInputInfo(g1, g2, new Keybinds(g1, g2));
+        dt.setInputInfo(new Keybinds(g1, g2));
 
     }
 
@@ -37,9 +37,11 @@ public class SuperBasicDriveTele extends OpMode {
 
         dt.updateState();
 
-        telemetry.addData("lx", gamepad1.left_stick_x);
-        telemetry.addData("ly", -gamepad1.left_stick_y);
-        telemetry.addData("turn", gamepad1.right_stick_x);
+        telemetry.addData("strafe", g1.getLeftStickX());
+        telemetry.addData("axial", -g1.getLeftStickY());
+        telemetry.addData("heading", -g1.getRightStickX());
+        dt.printMotorPowers();
+
         telemetry.update();
     }
 }

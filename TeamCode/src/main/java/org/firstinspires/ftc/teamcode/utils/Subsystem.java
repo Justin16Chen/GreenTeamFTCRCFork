@@ -21,9 +21,9 @@ public abstract class Subsystem {
     public void setRobot(Robot robot) {
         this.robot = robot;
     }
-    public void setInputInfo(GamepadTracker g1, GamepadTracker g2, Keybinds keybinds) {
-        this.g1 = g1;
-        this.g2 = g2;
+    public void setInputInfo(Keybinds keybinds) {
+        this.g1 = keybinds.g1;
+        this.g2 = keybinds.g2;
         this.keybinds = keybinds;
     }
 

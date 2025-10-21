@@ -36,7 +36,7 @@ public class Robot {
         subsystems.add(park);
 
         colorSensors = new BallColorSensor[3];
-        BallColorSensor backColorSensor = new BallColorSensor(hardware, telemetry, Hardware.backColorSensorName, true);
+        BallColorSensor backColorSensor = new BallColorSensor(hardware, telemetry, Hardware.backColorSensorName, false);
         sensors.add(backColorSensor);
         colorSensors[0] = backColorSensor;
         BallColorSensor middleColorSensor = new BallColorSensor(hardware, telemetry, Hardware.middleColorSensorName, false);
@@ -58,7 +58,7 @@ public class Robot {
         this.g2 = g2;
 
         for (Subsystem subsystem : subsystems)
-            subsystem.setInputInfo(g1, g2, keybinds);
+            subsystem.setInputInfo(keybinds);
     }
 
     public void declareHardware() {

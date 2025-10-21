@@ -19,9 +19,9 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 public class Hardware {
     // store these as static so they can be adjusted on dashboard for ease of use
     public static String cameraName = "webcam", frontColorSensorName = "frontColorSensor", middleColorSensorName = "middleColorSensor", backColorSensorName = "backColorSensor";
-    public static String frontLeftName = "FL", frontRightName = "FR", backLeftName = "BL", backRightName = "BR", intakeMotorName = "intake";
-    public static boolean reverseFrontLeft = false, reverseFrontRight = false, reverseBackLeft = false, reverseBackRight = true;
-    public static String leftParkServoName = "lParkServo", rightParkServoName = "rParkServo";
+    public static String frontLeftName = "FL", frontRightName = "FR", backLeftName = "BL", backRightName = "BR";
+    public static boolean reverseFrontLeft = true, reverseFrontRight = false, reverseBackLeft = true, reverseBackRight = false;
+    public static String leftParkServoName = "leftParkServo", rightParkServoName = "rightParkServo";
     public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkWPM = 1676;
 
     public static String intakeName = "intake";
@@ -37,21 +37,29 @@ public class Hardware {
 
     public DcMotorEx getFLDriveMotor() {
         DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setDirection(Hardware.reverseFrontLeft ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
         return motor;
     }
     public DcMotorEx getFRDriveMotor() {
-        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontRightName);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setDirection(Hardware.reverseFrontRight ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
         return motor;
     }
     public DcMotorEx getBLDriveMotor() {
-        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, backLeftName);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setDirection(Hardware.reverseBackLeft ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
         return motor;
     }
     public DcMotorEx getBRDriveMotor() {
-        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, backRightName);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setDirection(Hardware.reverseBackRight ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
         return motor;
     }

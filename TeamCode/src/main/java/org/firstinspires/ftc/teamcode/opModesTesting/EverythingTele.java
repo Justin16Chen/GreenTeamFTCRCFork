@@ -8,9 +8,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.utils.BallColorSensor;
 import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
 
-@TeleOp(name="Everything", group = "Testing")
+@TeleOp(name="Everything Tele", group = "Competition")
 public class EverythingTele extends OpMode {
     private GamepadTracker g1, g2;
     private Robot robot;
@@ -36,12 +37,18 @@ public class EverythingTele extends OpMode {
         g2.update();
 
         robot.update();
+        robot.intake.printIntakeInfo();
 
-        telemetry.addData("lx", gamepad1.left_stick_x);
-        telemetry.addData("ly", -gamepad1.left_stick_y);
-        telemetry.addData("turn", gamepad1.right_stick_x);
-        telemetry.addData("toggle intake", "right bumper");
+        for (BallColorSensor colorSensor : robot.colorSensors)
+            colorSensor.printInfo();
         
         telemetry.update();
+    }
+
+    private void printControls() {
+        telemetry.addData("lx", gamepad1.left_stick_x);
+        telemetry.addData("ly", -gamepad1.left_stick_y);
+        telemetry.addData("turn", -gamepad1.right_stick_x);
+        telemetry.addData("toggle intake", "right bumper");
     }
 }

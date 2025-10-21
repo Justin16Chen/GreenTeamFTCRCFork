@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Park;
 import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
 
-@TeleOp(name="Park Test", group = "Testing")
+@TeleOp(name="Park Test", group = "Utility")
 @Config
 public class ParkTest extends OpMode {
     private GamepadTracker g1;

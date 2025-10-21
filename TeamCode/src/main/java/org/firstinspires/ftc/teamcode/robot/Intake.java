@@ -26,11 +26,27 @@ public class Intake extends Subsystem {
         motor = hardware.getIntakeMotor();
     }
 
+    public void updateStateSimple() {
+        switch (state) {
+            case OFF:
+                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
+                    state = State.ON;
+                    motor.setPower(intakePower);
+                }
+                break;
+            case ON:
+                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
+                    state = State.OFF;
+                    motor.setPower(0);
+                }
+                break;
+        }
+    }
     @Override
     public void updateState() {
         switch (state) {
             case OFF:
-                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
+                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE) && numBalls < 3) {
                     state = State.ON;
                     motor.setPower(intakePower);
 
@@ -55,11 +71,34 @@ public class Intake extends Subsystem {
                 if (robot.colorSensors[numBalls].firstTimeSeeingBallFromLatestCache()) {
                     numBalls++;
 
-                    // turn on the next sensor
-                    robot.colorSensors[numBalls].setTurnedOn(true);
-                    robot.colorSensors[numBalls - 1].setTurnedOn(false);
+
+                    state = State.OFF;
+                    motor.setPower(0);
+                    for (int i=0; i<3; i++)
+                        robot.colorSensors[i].setTurnedOn(false);
+//                    if (numBalls < 3) {
+//                        // turn on the next sensor
+//                        robot.colorSensors[numBalls].setTurnedOn(true);
+//                        robot.colorSensors[numBalls - 1].setTurnedOn(false);
+//                    }
+//                    else {
+//                        // turn off all sensors
+//                        state = State.OFF;
+//                        motor.setPower(0);
+//                        for (int i=0; i<3; i++)
+//                            robot.colorSensors[i].setTurnedOn(false);
+//                        break;
+//                    }
+
                 }
                 break;
         }
+    }
+
+    public void printIntakeInfo() {
+        telemetry.addLine("===INTAKE===");
+        telemetry.addData("state", state);
+        telemetry.addData("motor power", motor.getPower());
+        telemetry.addData("num balls", numBalls);
     }
 }

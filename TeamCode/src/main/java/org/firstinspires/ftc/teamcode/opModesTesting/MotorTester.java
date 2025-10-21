@@ -13,7 +13,8 @@ import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
 @TeleOp(name="Motor Test", group = "Testing")
 @Config
 public class MotorTester extends OpMode {
-    public static String motorConfigName = "motor1";
+    public static String motorConfigName = "intake";
+    public static double increment = 0.1;
     private GamepadTracker g1;
     private DcMotorEx motor1;
     private double motorPower;
@@ -31,9 +32,9 @@ public class MotorTester extends OpMode {
     @Override
     public void loop() {
         if (g1.isDpadUpClicked())
-            motorPower += 0.05;
+            motorPower += increment;
         else if (g1.isDpadDownClicked())
-            motorPower -= 0.05;
+            motorPower -= increment;
         else if (g1.isAClicked())
             motorPower = 0;
 
