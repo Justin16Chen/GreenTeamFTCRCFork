@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
+import org.firstinspires.ftc.teamcode.opModesCompetition.tele.TeleKeybinds;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 
 // requires FTC dashboard to use
@@ -22,7 +22,7 @@ public abstract class ParentOpMode extends OpMode {
 
         g1 = new GamepadTracker(gamepad1);
         g2 = new GamepadTracker(gamepad2);
-        keybinds = new Keybinds(g1, g2);
+        keybinds = new TeleKeybinds(g1, g2);
 
         initiation();
     }

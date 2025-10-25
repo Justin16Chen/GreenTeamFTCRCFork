@@ -5,10 +5,10 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.robot.Drivetrain;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
+import org.firstinspires.ftc.teamcode.opModesCompetition.tele.TeleKeybinds;
 
 @TeleOp(name="Super Basic Drive", group="Testing")
 public class SuperBasicDriveTele extends OpMode {
@@ -26,7 +26,7 @@ public class SuperBasicDriveTele extends OpMode {
 
         dt = new Drivetrain(hardware, telemetry);
         dt.declareHardware();
-        dt.setInputInfo(new Keybinds(g1, g2));
+        dt.setInputInfo(new TeleKeybinds(g1, g2));
 
     }
 

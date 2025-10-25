@@ -34,7 +34,6 @@ public class BallColorSensorTuning extends ParentOpMode {
 
     @Override
     public void updateLoop() {
-        intake.updateStateSimple();
 
         if (g1.isAClicked()) {
             tracking = !tracking;

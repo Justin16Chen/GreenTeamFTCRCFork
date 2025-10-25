@@ -1,11 +1,10 @@
-package org.firstinspires.ftc.teamcode.opModesTesting;
+package org.firstinspires.ftc.teamcode.opModesCompetition.tele;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.BallColorSensor;
@@ -28,7 +27,7 @@ public class EverythingTele extends OpMode {
 
         robot = new Robot(hardware, telemetry);
         robot.declareHardware();
-        robot.setInputInfo(g1, g2, new Keybinds(g1, g2));
+        robot.setInputInfo(g1, g2, new TeleKeybinds(g1, g2));
     }
 
     @Override

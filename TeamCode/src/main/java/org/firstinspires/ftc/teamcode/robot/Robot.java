@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.BallColorSensor;
 import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
 import org.firstinspires.ftc.teamcode.utils.Sensor;
@@ -20,6 +20,7 @@ public class Robot {
     public final BallColorSensor[] colorSensors;
     public final Drivetrain drivetrain;
     public final Intake intake;
+    public final Flipper flipper;
     public final Park park;
     public Robot(Hardware hardware, Telemetry telemetry) {
         this.telemetry = telemetry;
@@ -32,6 +33,8 @@ public class Robot {
         subsystems.add(drivetrain);
         intake = new Intake(hardware, telemetry);
         subsystems.add(intake);
+        flipper = new Flipper(hardware, telemetry);
+        subsystems.add(flipper);
         park = new Park(hardware, telemetry);
         subsystems.add(park);
 

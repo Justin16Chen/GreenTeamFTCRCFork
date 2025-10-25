@@ -21,10 +21,12 @@ public class Hardware {
     public static String cameraName = "webcam", frontColorSensorName = "frontColorSensor", middleColorSensorName = "middleColorSensor", backColorSensorName = "backColorSensor";
     public static String frontLeftName = "FL", frontRightName = "FR", backLeftName = "BL", backRightName = "BR";
     public static boolean reverseFrontLeft = true, reverseFrontRight = false, reverseBackLeft = true, reverseBackRight = false;
+    public static String intakeName = "intake";
+    public static String flipperServoName = "flipperServo";
+    public static int flipperOpenPWM = 680, flipperClosePWM = 1040;
     public static String leftParkServoName = "leftParkServo", rightParkServoName = "rightParkServo";
     public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkWPM = 1676;
 
-    public static String intakeName = "intake";
 
     public final HardwareMap hardwareMap;
     public Hardware(HardwareMap hardwareMap) {
@@ -76,6 +78,11 @@ public class Hardware {
     public ServoImplEx getRightParkServo() {
         ServoImplEx servo = hardwareMap.get(ServoImplEx.class, rightParkServoName);
         servo.setPwmRange(new PwmControl.PwmRange(rightStorePWM, rightParkWPM));
+        return servo;
+    }
+    public ServoImplEx getFlipperServo() {
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, flipperServoName);
+        servo.setPwmRange(new PwmControl.PwmRange(flipperClosePWM, flipperOpenPWM));
         return servo;
     }
 }

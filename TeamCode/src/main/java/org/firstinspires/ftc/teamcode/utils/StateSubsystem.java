@@ -31,12 +31,17 @@ public abstract class StateSubsystem<E extends Enum<E>> extends Subsystem {
     public double getStateTime() {
         return System.currentTimeMillis() - stateStartTime;
     }
+    protected void setInitialState(E state) {
+        this.state = state;
+    }
     public void setState(E newState) {
         if (this.state == newState)
             return;
         stateStartTime = System.currentTimeMillis();
         E oldState = state;
         state = newState;
+        Transition<E> transition = new Transition<>(oldState, newState);
+//        Runnable runnable = transitionFunctions.get(transition);
         transitionFunctions.getOrDefault(new Transition<>(oldState, newState), () -> {}).run();
     }
 }

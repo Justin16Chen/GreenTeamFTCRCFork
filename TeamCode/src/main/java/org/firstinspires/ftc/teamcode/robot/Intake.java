@@ -1,24 +1,38 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
-import org.firstinspires.ftc.teamcode.utils.BallColorSensor;
+import org.firstinspires.ftc.teamcode.utils.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.StateSubsystem;
 import org.firstinspires.ftc.teamcode.utils.Subsystem;
+import org.firstinspires.ftc.teamcode.utils.Transition;
 
-public class Intake extends Subsystem {
-    public static double intakePower = 0.99;
+@Config
+public class Intake extends StateSubsystem<Intake.State> {
+    public static double intakePower = 0.85;
+
     public enum State {
         ON, OFF
     }
+
     private DcMotorEx motor;
-    private State state;
     private int numBalls;
+
     public Intake(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        state = State.OFF;
+        setInitialState(State.OFF);
         numBalls = 0;
+        setTransitionFunction(State.OFF, State.ON, () -> {
+            motor.setPower(intakePower);
+            turnOnSensor(numBalls);
+        });
+
+        setTransitionFunction(State.ON, State.OFF, () -> {
+            motor.setPower(0);
+            turnOffAllSensors();
+        });
     }
 
     @Override
@@ -26,44 +40,18 @@ public class Intake extends Subsystem {
         motor = hardware.getIntakeMotor();
     }
 
-    public void updateStateSimple() {
-        switch (state) {
-            case OFF:
-                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
-                    state = State.ON;
-                    motor.setPower(intakePower);
-                }
-                break;
-            case ON:
-                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
-                    state = State.OFF;
-                    motor.setPower(0);
-                }
-                break;
-        }
-    }
     @Override
     public void updateState() {
-        switch (state) {
+        switch (getState()) {
             case OFF:
                 if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE) && numBalls < 3) {
-                    state = State.ON;
-                    motor.setPower(intakePower);
-
-                    // turn on the appropriate sensor
-                    for (int i=0; i<3; i++)
-                        robot.colorSensors[i].setTurnedOn(i == numBalls);
+                    setState(State.ON);
                     break;
                 }
                 break;
             case ON:
                 if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
-                    state = State.OFF;
-                    motor.setPower(0);
-
-                    // turn off all sensors
-                    for (int i=0; i<3; i++)
-                        robot.colorSensors[i].setTurnedOn(false);
+                    setState(State.OFF);
                     break;
                 }
 
@@ -71,33 +59,32 @@ public class Intake extends Subsystem {
                 if (robot.colorSensors[numBalls].firstTimeSeeingBallFromLatestCache()) {
                     numBalls++;
 
+                    if (numBalls < 3)
+                        turnOnSensor(numBalls);
 
-                    state = State.OFF;
-                    motor.setPower(0);
-                    for (int i=0; i<3; i++)
-                        robot.colorSensors[i].setTurnedOn(false);
-//                    if (numBalls < 3) {
-//                        // turn on the next sensor
-//                        robot.colorSensors[numBalls].setTurnedOn(true);
-//                        robot.colorSensors[numBalls - 1].setTurnedOn(false);
-//                    }
-//                    else {
-//                        // turn off all sensors
-//                        state = State.OFF;
-//                        motor.setPower(0);
-//                        for (int i=0; i<3; i++)
-//                            robot.colorSensors[i].setTurnedOn(false);
-//                        break;
-//                    }
-
+                    else {
+                        setState(State.OFF);
+                        break;
+                    }
                 }
                 break;
         }
     }
 
+    // turn on the appropriate sensor
+    private void turnOnSensor(int numBalls) {
+        for(int i = 0; i<3;i++)
+            robot.colorSensors[i].setTurnedOn(i == numBalls);
+    }
+    private void turnOffAllSensors() {
+        for(int i = 0; i<3;i++)
+            robot.colorSensors[i].setTurnedOn(false);
+    }
+
     public void printIntakeInfo() {
         telemetry.addLine("===INTAKE===");
-        telemetry.addData("state", state);
+        telemetry.addData("state", getState());
+        telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE));
         telemetry.addData("motor power", motor.getPower());
         telemetry.addData("num balls", numBalls);
     }
