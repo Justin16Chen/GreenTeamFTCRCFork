@@ -4,8 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.StateSubsystem;
-import org.firstinspires.ftc.teamcode.utils.Transition;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.StateSubsystem;
 
 @Config
 public class Flipper extends StateSubsystem<Flipper.State> {
@@ -31,5 +30,10 @@ public class Flipper extends StateSubsystem<Flipper.State> {
     public void updateState() {
         if (g1.isLBClicked())
             setState(getState() == State.OPEN ? State.CLOSED : State.OPEN);
+    }
+
+    @Override
+    public void printInfo() {
+
     }
 }

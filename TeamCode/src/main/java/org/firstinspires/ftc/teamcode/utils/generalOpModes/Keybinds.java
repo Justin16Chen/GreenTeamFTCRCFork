@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.utils;
+package org.firstinspires.ftc.teamcode.utils.generalOpModes;
 
 import java.util.HashMap;
 import java.util.function.Predicate;

@@ -4,11 +4,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.robot.Intake;
-import org.firstinspires.ftc.teamcode.utils.BallColorSensor;
-import org.firstinspires.ftc.teamcode.utils.ParentOpMode;
-import org.firstinspires.ftc.teamcode.utils.Rounder;
+import org.firstinspires.ftc.teamcode.robot.BallColorSensor;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
+import org.firstinspires.ftc.teamcode.utils.misc.Rounder;
 
-@TeleOp(name="Ball Color Sensor Tuning", group="Tuning")
+@TeleOp(name="Ball Color Sensor Tuning", group="Utility")
 @Config
 public class BallColorSensorTuning extends ParentOpMode {
     public static String colorSensorName = "backColorSensor";

@@ -1,10 +1,11 @@
-package org.firstinspires.ftc.teamcode.utils;
+package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.robot.Hardware;
+import org.firstinspires.ftc.teamcode.utils.misc.Rounder;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Sensor;
 
 @Config
 public class BallColorSensor extends Sensor {

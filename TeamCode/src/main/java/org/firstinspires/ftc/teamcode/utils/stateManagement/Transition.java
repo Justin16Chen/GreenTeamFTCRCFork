@@ -1,8 +1,6 @@
-package org.firstinspires.ftc.teamcode.utils;
+package org.firstinspires.ftc.teamcode.utils.stateManagement;
 
 import androidx.annotation.NonNull;
-
-import java.util.Objects;
 
 // helper class to hold information about transitioning from one state to another
 // used in StateSubsystem
@@ -11,12 +9,15 @@ public class Transition<E extends Enum<E>> {
         FROM_ANY_TO,
         TO_ANY_FROM
     }
+    private final Type type;
     public final E from, to;
     public Transition(E from, E to) {
+        this.type = null;
         this.from = from;
         this.to = to;
     }
     public Transition(Type type, E transition) {
+        this.type = type;
         switch (type) {
             case TO_ANY_FROM:
                 this.from = transition;
@@ -43,7 +44,13 @@ public class Transition<E extends Enum<E>> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(from, to);
+        int result = 1;
+        if (from != null)
+            result = 31 + from.hashCode();
+        if (to != null)
+            result = 31 * result + to.hashCode();
+        return result;
+//        return Objects.hash(type);
     }
 
     @NonNull

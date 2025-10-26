@@ -4,17 +4,18 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.Keybinds;
-import org.firstinspires.ftc.teamcode.utils.StateSubsystem;
-import org.firstinspires.ftc.teamcode.utils.Subsystem;
-import org.firstinspires.ftc.teamcode.utils.Transition;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.StateSubsystem;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Transition;
 
 @Config
 public class Intake extends StateSubsystem<Intake.State> {
-    public static double intakePower = 0.85;
+    public static double collectPower = 0.85, feedShooterTime = 0.1, feedShooterPowerYInt = 0.2, feedShooterPowerSlope = 0.25;
+    public static LineEquation feedShooterEquation = new LineEquation(feedShooterPowerSlope, feedShooterPowerYInt);
 
     public enum State {
-        ON, OFF
+        ON, OFF, FEED_SHOOTER
     }
 
     private DcMotorEx motor;
@@ -24,13 +25,17 @@ public class Intake extends StateSubsystem<Intake.State> {
         super(hardware, telemetry);
         setInitialState(State.OFF);
         numBalls = 0;
-        setTransitionFunction(State.OFF, State.ON, () -> {
-            motor.setPower(intakePower);
+        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.ON, () -> {
+            motor.setPower(collectPower);
             turnOnSensor(numBalls);
         });
 
-        setTransitionFunction(State.ON, State.OFF, () -> {
+        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.OFF, () -> {
             motor.setPower(0);
+            turnOffAllSensors();
+        });
+        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.FEED_SHOOTER, () -> {
+            motor.setPower(feedShooterEquation.calculate(numBalls));
             turnOffAllSensors();
         });
     }
@@ -68,6 +73,9 @@ public class Intake extends StateSubsystem<Intake.State> {
                     }
                 }
                 break;
+            case FEED_SHOOTER:
+                if (getStateTime() > feedShooterTime)
+                    setState(State.OFF);
         }
     }
 
@@ -81,7 +89,10 @@ public class Intake extends StateSubsystem<Intake.State> {
             robot.colorSensors[i].setTurnedOn(false);
     }
 
-    public void printIntakeInfo() {
+    public int getNumBalls() {
+        return numBalls;
+    }
+    public void printInfo() {
         telemetry.addLine("===INTAKE===");
         telemetry.addData("state", getState());
         telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE));

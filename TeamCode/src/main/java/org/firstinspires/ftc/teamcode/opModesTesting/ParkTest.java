@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Park;
-import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 
 @TeleOp(name="Park Test", group = "Utility")
 @Config

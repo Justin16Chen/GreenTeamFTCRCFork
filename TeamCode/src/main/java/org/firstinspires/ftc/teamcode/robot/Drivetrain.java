@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.Subsystem;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 public class Drivetrain extends Subsystem {
     private DcMotorEx fr, fl, br, bl;
@@ -22,6 +22,11 @@ public class Drivetrain extends Subsystem {
     @Override
     public void updateState() {
         setDrivePowers(g1.getLeftStickX(), -g1.getLeftStickY(), -g1.getRightStickX());
+    }
+
+    @Override
+    public void printInfo() {
+
     }
 
     public void setDrivePowers(double lateralPower, double axialPower, double headingPower) {

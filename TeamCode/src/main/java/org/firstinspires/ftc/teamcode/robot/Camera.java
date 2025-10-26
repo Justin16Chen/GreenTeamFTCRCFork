@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.Subsystem;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
@@ -45,6 +45,11 @@ public class Camera extends Subsystem {
 
     @Override
     public void updateState() {
+
+    }
+
+    @Override
+    public void printInfo() {
 
     }
 

@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.Keybinds;
-import org.firstinspires.ftc.teamcode.utils.BallColorSensor;
-import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
-import org.firstinspires.ftc.teamcode.utils.Sensor;
-import org.firstinspires.ftc.teamcode.utils.Subsystem;
+import org.firstinspires.ftc.teamcode.utils.commands.WaitUntilCommand;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Sensor;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 import java.util.ArrayList;
 
@@ -79,5 +81,21 @@ public class Robot {
         // update subsystems
         for (Subsystem subsystem : subsystems)
             subsystem.updateState();
+    }
+
+    public void shootBall() {
+
+        new SequentialCommandGroup(
+                new WaitUntilCommand()
+        ).schedule();
+
+//        new SequentialCommand(
+//            new WaitUntilCommand(shooter::isReadyToShoot),
+//            () -> flipper.setState(Flipper.State.OPEN,
+//            new WaitCommand(Flipper.rotationTime),
+//            () -> intake.setState(Intake.State.FEED_SHOOTER),
+//            () -> flipper.setState(Flipper.State.CLOSED)
+//        )
+
     }
 }

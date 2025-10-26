@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.robot.Drivetrain;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
-import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.TeleKeybinds;
 
 @TeleOp(name="Super Basic Drive", group="Testing")

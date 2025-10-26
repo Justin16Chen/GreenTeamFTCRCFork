@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.opModesCompetition.tele;
 
-import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
-import org.firstinspires.ftc.teamcode.utils.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 
 import java.util.HashMap;
 import java.util.function.Predicate;

@@ -7,8 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.utils.BallColorSensor;
-import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
+import org.firstinspires.ftc.teamcode.robot.BallColorSensor;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 
 @TeleOp(name="Everything Tele", group = "Competition")
 public class EverythingTele extends OpMode {
@@ -36,7 +36,7 @@ public class EverythingTele extends OpMode {
         g2.update();
 
         robot.update();
-        robot.intake.printIntakeInfo();
+        robot.intake.printInfo();
 
         for (BallColorSensor colorSensor : robot.colorSensors)
             colorSensor.printInfo();

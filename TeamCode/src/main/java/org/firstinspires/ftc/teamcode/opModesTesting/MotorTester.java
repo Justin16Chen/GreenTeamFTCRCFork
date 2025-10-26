@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 
 @TeleOp(name="Motor Test", group = "Testing")
 @Config

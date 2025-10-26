@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.Keybinds;
-import org.firstinspires.ftc.teamcode.utils.Subsystem;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 public class Park extends Subsystem {
     public static double stowPosition = 0.01, parkPosition = 0.99;
@@ -23,6 +23,11 @@ public class Park extends Subsystem {
     public void updateState() {
         if (keybinds.check(Keybinds.D1Trigger.PARK))
             setServoPositions(parkPosition);
+
+    }
+
+    @Override
+    public void printInfo() {
 
     }
 

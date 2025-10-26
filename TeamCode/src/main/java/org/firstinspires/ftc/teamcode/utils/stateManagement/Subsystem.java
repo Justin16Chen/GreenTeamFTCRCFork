@@ -1,8 +1,10 @@
-package org.firstinspires.ftc.teamcode.utils;
+package org.firstinspires.ftc.teamcode.utils.stateManagement;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 
 // all subsystems should inherit this class (or indirectly inherit it by extending StateSubsystem)
 // stores basic necessities like gamepad trackers and the robot
@@ -29,4 +31,6 @@ public abstract class Subsystem {
     public abstract void declareHardware();
 
     public abstract void updateState();
+
+    public abstract void printInfo();
 }
