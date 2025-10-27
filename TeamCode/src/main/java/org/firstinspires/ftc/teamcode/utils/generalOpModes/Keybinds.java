@@ -5,7 +5,7 @@ import java.util.function.Predicate;
 
 public abstract class Keybinds {
     public enum D1Trigger {
-        TOGGLE_INTAKE,
+        TURN_ON_INTAKE,
         AUTO_AIM,
         PARK
     }

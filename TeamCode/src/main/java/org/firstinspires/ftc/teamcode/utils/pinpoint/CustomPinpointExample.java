@@ -30,7 +30,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
-
 import java.util.Locale;
 
 /*
@@ -59,98 +58,25 @@ For support, contact tech@gobilda.com
 -Ethan Doak
  */
 
-//@TeleOp(name="goBILDA Pinpoint Example", group="Testing")
+@TeleOp(name="Pinpoint Example", group="Testing")
 //@Disabled
 
-public class PinpointExample extends LinearOpMode {
+public class CustomPinpointExample extends LinearOpMode {
 
-    PinpointLocalizer odo;
+    Pinpoint pinpoint;
 
     double oldTime = 0;
 
 
     @Override
     public void runOpMode() {
+        pinpoint = new Pinpoint(hardwareMap);
 
-        // Initialize the hardware variables. Note that the strings used here must correspond
-        // to the names assigned during the robot configuration step on the DS or RC devices.
-
-        odo = hardwareMap.get(PinpointLocalizer.class,"pinpoint");
-
-        /*
-        Set the odometry pod positions relative to the point that the odometry computer tracks around.
-        The X pod offset refers to how far sideways from the tracking point the
-        X (forward) odometry pod is. Left of the center is a positive number,
-        right of center is a negative number. the Y pod offset refers to how far forwards from
-        the tracking point the Y (strafe) odometry pod is. forward of center is a positive number,
-        backwards is a negative number.
-         */
-        odo.setOffsets(5.562, -0, DistanceUnit.INCH); //these are tuned for 3110-0002-0001 Product Insight #1
-
-        /*
-        Set the kind of pods used by your robot. If you're using goBILDA odometry pods, select either
-        the goBILDA_SWINGARM_POD, or the goBILDA_4_BAR_POD.
-        If you're using another kind of odometry pod, uncomment setEncoderResolution and input the
-        number of ticks per unit of your odometry pod.
-         */
-        odo.setEncoderResolution(PinpointLocalizer.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        //pinpoint.setEncoderResolution(13.26291192, DistanceUnit.MM);
-
-
-        /*
-        Set the direction that each of the two odometry pods count. The X (forward) pod should
-        increase when you move the robot forward. And the Y (strafe) pod should increase when
-        you move the robot to the left.
-         */
-        odo.setEncoderDirections(PinpointLocalizer.EncoderDirection.FORWARD, PinpointLocalizer.EncoderDirection.FORWARD);
-
-
-        /*
-        Before running the robot, recalibrate the IMU. This needs to happen when the robot is stationary
-        The IMU will automatically calibrate when first powered on, but recalibrating before running
-        the robot is a good idea to ensure that the calibration is "good".
-        resetPosAndIMU will reset the position to 0,0,0 and also recalibrate the IMU.
-        This is recommended before you run your autonomous, as a bad initial calibration can cause
-        an incorrect starting value for x, y, and heading.
-         */
-        //pinpoint.recalibrateIMU();
-        odo.resetPosAndIMU();
-
-        telemetry.addData("Status", "Initialized");
-        telemetry.addData("X offset", odo.getXOffset(DistanceUnit.MM));
-        telemetry.addData("Y offset", odo.getYOffset(DistanceUnit.MM));
-        telemetry.addData("Device Version Number:", odo.getDeviceVersion());
-        telemetry.addData("Heading Scalar", odo.getYawScalar());
-        telemetry.update();
-
-        // Wait for the game to start (driver presses START)
         waitForStart();
         resetRuntime();
 
-
-        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
-            /*
-            Request an update from the Pinpoint odometry computer. This checks almost all outputs
-            from the device in a single I2C read.
-             */
-            odo.update();
-
-            /*
-            Optionally, you can update only the heading of the device. This takes less time to read, but will not
-            pull any other data. Only the heading (which you can pull with getHeading() or in getPosition().
-             */
-            //pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
-
-
-            if (gamepad1.a){
-                odo.resetPosAndIMU(); //resets the position to 0 and recalibrates the IMU
-            }
-
-            if (gamepad1.b){
-                odo.recalibrateIMU(); //recalibrates the IMU without resetting position
-            }
+            pinpoint.update();
 
             /*
             This code prints the loop frequency of the REV Control Hub. This frequency is effected
@@ -167,14 +93,14 @@ public class PinpointExample extends LinearOpMode {
             /*
             gets the current Position (x & y in mm, and heading in degrees) of the robot, and prints it.
              */
-            Pose2D pos = odo.getPosition();
+            Pose2D pos = pinpoint.getPose();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position", data);
 
             /*
             gets the current Velocity (x & y in mm/sec and heading in degrees/sec) and prints it.
              */
-            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", odo.getVelX(DistanceUnit.MM), odo.getVelY(DistanceUnit.MM), odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES));
+            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", pinpoint.odo.getVelX(DistanceUnit.MM), pinpoint.odo.getVelY(DistanceUnit.MM), pinpoint.odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES));
             telemetry.addData("Velocity", velocity);
 
 
@@ -188,9 +114,9 @@ public class PinpointExample extends LinearOpMode {
             FAULT_Y_POD_NOT_DETECTED - The device does not detect a Y pod plugged in
             FAULT_BAD_READ - The firmware detected a bad I²C read, if a bad read is detected, the device status is updated and the previous position is reported
             */
-            telemetry.addData("Status", odo.getDeviceStatus());
+            telemetry.addData("Status", pinpoint.odo.getDeviceStatus());
 
-            telemetry.addData("Pinpoint Frequency", odo.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
+            telemetry.addData("Pinpoint Frequency", pinpoint.odo.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
 
             telemetry.addData("REV Hub Frequency: ", frequency); //prints the control system refresh rate
             telemetry.update();

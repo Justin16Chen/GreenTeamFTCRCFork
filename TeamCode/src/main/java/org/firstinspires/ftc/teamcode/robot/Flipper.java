@@ -8,7 +8,8 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.StateSubsystem;
 
 @Config
 public class Flipper extends StateSubsystem<Flipper.State> {
-    public static double closePosition = 0.01, openPosition = 0.99;
+    public static double blockPosition = 0.01, openPosition = 0.99;
+    public static long rotationTimeMs = 200;
     public enum State {
         OPEN, CLOSED
     }
@@ -18,7 +19,7 @@ public class Flipper extends StateSubsystem<Flipper.State> {
         setInitialState(State.OPEN);
 
         setTransitionFunction(State.CLOSED, State.OPEN, () -> servo.setPosition(openPosition));
-        setTransitionFunction(State.OPEN, State.CLOSED, () -> servo.setPosition(closePosition));
+        setTransitionFunction(State.OPEN, State.CLOSED, () -> servo.setPosition(blockPosition));
     }
 
     @Override

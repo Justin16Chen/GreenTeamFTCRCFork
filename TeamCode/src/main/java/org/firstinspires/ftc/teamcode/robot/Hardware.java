@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -22,8 +21,10 @@ public class Hardware {
     public static String frontLeftName = "FL", frontRightName = "FR", backLeftName = "BL", backRightName = "BR";
     public static boolean reverseFrontLeft = true, reverseFrontRight = false, reverseBackLeft = true, reverseBackRight = false;
     public static String intakeName = "intake", shooterName = "shooter";
+    public static String leftHoodServoName = "leftHoodServo", rightHoodServoName = "rightHoodServo";
+    public static int leftHoodServoDownPWM = 550, leftHoodServoUpPWM = 2400, rightHoodServoDownPWM = 2400, rightHoodServoUpPWM = 550;
     public static String flipperServoName = "flipperServo";
-    public static int flipperOpenPWM = 680, flipperClosePWM = 1040;
+    public static int flipperOpenPWM = 975, flipperClosePWM = 1040;
     public static String leftParkServoName = "leftParkServo", rightParkServoName = "rightParkServo";
     public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkWPM = 1676;
 
@@ -75,6 +76,23 @@ public class Hardware {
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         return motor;
     }
+//    public CRServo getLeftHoodServo() {
+//        return hardwareMap.get(CRServo.class, leftHoodServoName);
+//    }
+//    public CRServo getRightHoodServo() {
+//        return hardwareMap.get(CRServo.class, rightHoodServoName);
+//    }
+    public ServoImplEx getLeftHoodServo() {
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, leftHoodServoName);
+        servo.setPwmRange(new PwmControl.PwmRange(leftHoodServoDownPWM, leftHoodServoUpPWM));
+        return servo;
+    }
+    public ServoImplEx getRightHoodServo() {
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, rightHoodServoName);
+        servo.setPwmRange(new PwmControl.PwmRange(rightHoodServoDownPWM, rightHoodServoUpPWM));
+        return servo;
+    }
+
     public ServoImplEx getLeftParkServo() {
         ServoImplEx servo = hardwareMap.get(ServoImplEx.class, leftParkServoName);
         servo.setPwmRange(new PwmControl.PwmRange(leftStorePWM, leftParkPWM));

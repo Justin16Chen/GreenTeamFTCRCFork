@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.misc.Rounder;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Sensor;
 
 @Config
@@ -68,10 +68,10 @@ public class BallColorSensor extends Sensor {
     }
 
     public void printRGB() {
-        telemetry.addData("RGB", Rounder.format2(rgbb));
+        telemetry.addData("RGB", MathUtils.format2(rgbb));
     }
     public void printOldRGB() {
-        telemetry.addData("old RGB", Rounder.format2(oldRgbb));
+        telemetry.addData("old RGB", MathUtils.format2(oldRgbb));
 
     }
 

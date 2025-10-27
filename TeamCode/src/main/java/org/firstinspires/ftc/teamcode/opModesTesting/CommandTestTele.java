@@ -28,6 +28,10 @@ public class CommandTestTele extends ParentOpMode {
                     intakeMotor.setPower(getTimeRunning() / 3.);
                 }
 
+//                @Override
+//                public void end() {
+//                    intakeMotor.setPower(0);
+//                }
                 @Override
                 public boolean isDone() {
                     return getTimeRunning() > 3;

@@ -21,7 +21,7 @@ public class Drivetrain extends Subsystem {
 
     @Override
     public void updateState() {
-        setDrivePowers(g1.getLeftStickX(), -g1.getLeftStickY(), -g1.getRightStickX());
+        setDrivePowers(-g1.getLeftStickX(), -g1.getLeftStickY(), -g1.getRightStickX());
     }
 
     @Override

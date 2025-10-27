@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Transition;
 
 @Config
 public class Intake extends StateSubsystem<Intake.State> {
-    public static double collectPower = 0.85, feedShooterTime = 0.1, feedShooterPowerYInt = 0.2, feedShooterPowerSlope = 0.25;
+    public static double collectPower = 0.99, feedShooterTime = 0.1, feedShooterPowerYInt = 0.2, feedShooterPowerSlope = 0.25;
     public static LineEquation feedShooterEquation = new LineEquation(feedShooterPowerSlope, feedShooterPowerYInt);
 
     public enum State {
@@ -25,18 +25,22 @@ public class Intake extends StateSubsystem<Intake.State> {
         super(hardware, telemetry);
         setInitialState(State.OFF);
         numBalls = 0;
-        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.ON, () -> {
+        setTransitionFunction(State.OFF, State.ON, () -> {
             motor.setPower(collectPower);
             turnOnSensor(numBalls);
         });
 
-        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.OFF, () -> {
+        setTransitionFunction(State.ON, State.OFF, () -> {
             motor.setPower(0);
             turnOffAllSensors();
         });
         setTransitionFunction(Transition.Type.FROM_ANY_TO, State.FEED_SHOOTER, () -> {
             motor.setPower(feedShooterEquation.calculate(numBalls));
             turnOffAllSensors();
+        });
+        setTransitionFunction(Transition.Type.TO_ANY_FROM, State.FEED_SHOOTER, () -> {
+            if (numBalls > 0)
+                numBalls--;
         });
     }
 
@@ -49,13 +53,13 @@ public class Intake extends StateSubsystem<Intake.State> {
     public void updateState() {
         switch (getState()) {
             case OFF:
-                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE) && numBalls < 3) {
+                if (keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE) && numBalls < 3) {
                     setState(State.ON);
                     break;
                 }
                 break;
             case ON:
-                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
+                if (!keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE)) {
                     setState(State.OFF);
                     break;
                 }
@@ -95,7 +99,7 @@ public class Intake extends StateSubsystem<Intake.State> {
     public void printInfo() {
         telemetry.addLine("===INTAKE===");
         telemetry.addData("state", getState());
-        telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE));
+        telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE));
         telemetry.addData("motor power", motor.getPower());
         telemetry.addData("num balls", numBalls);
     }

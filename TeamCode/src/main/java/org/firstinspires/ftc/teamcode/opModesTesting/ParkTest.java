@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 public class ParkTest extends OpMode {
     private GamepadTracker g1;
     private Park park;
+    private boolean out;
 
     @Override
     public void init() {
@@ -26,15 +27,17 @@ public class ParkTest extends OpMode {
         park = new Park(hardware, telemetry);
         park.declareHardware();
         park.setServoPositions(Park.stowPosition);
+        out = false;
     }
 
     @Override
     public void loop() {
         g1.update();
 
-        if (g1.isAClicked())
-            park.setServoPositions(park.getServoPositions() == Park.stowPosition ? Park.parkPosition : Park.stowPosition);
-
+        if (g1.isAClicked()) {
+            out = !out;
+            park.setServoPositions(out ? Park.stowPosition : Park.parkPosition);
+        }
         telemetry.addData("a", "toggle park");
         telemetry.addData("a pressed", g1.isAPressed());
         telemetry.addData("current park servo position", park.getServoPositions());

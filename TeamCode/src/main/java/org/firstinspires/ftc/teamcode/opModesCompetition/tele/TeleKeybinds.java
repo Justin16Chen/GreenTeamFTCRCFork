@@ -13,7 +13,7 @@ public class TeleKeybinds extends Keybinds {
 
     @Override
     protected void enterKeybinds(HashMap<D1Trigger, Predicate<GamepadTracker>> gt1Triggers, HashMap<D2Trigger, Predicate<GamepadTracker>> gt2Triggers) {
-        gt1Triggers.put(D1Trigger.TOGGLE_INTAKE, GamepadTracker::isRBClicked);
+        gt1Triggers.put(D1Trigger.TURN_ON_INTAKE, GamepadTracker::isRTPressed);
         gt1Triggers.put(D1Trigger.AUTO_AIM, GamepadTracker::isLBClicked);
         gt1Triggers.put(D1Trigger.PARK, GamepadTracker::isAClicked);
     }

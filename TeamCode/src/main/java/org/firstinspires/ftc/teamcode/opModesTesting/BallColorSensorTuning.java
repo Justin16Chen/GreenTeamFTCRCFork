@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.robot.Intake;
 import org.firstinspires.ftc.teamcode.robot.BallColorSensor;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
-import org.firstinspires.ftc.teamcode.utils.misc.Rounder;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 
 @TeleOp(name="Ball Color Sensor Tuning", group="Utility")
 @Config
@@ -72,8 +72,8 @@ public class BallColorSensorTuning extends ParentOpMode {
         colSensor.printOldRGB();
         telemetry.addLine();
         telemetry.addData("currently tracking mins and maxes", tracking);
-        telemetry.addData("mins", Rounder.format2(mins));
-        telemetry.addData("maxes", Rounder.format2(maxes));
+        telemetry.addData("mins", MathUtils.format2(mins));
+        telemetry.addData("maxes", MathUtils.format2(maxes));
 
         telemetry.update();
     }

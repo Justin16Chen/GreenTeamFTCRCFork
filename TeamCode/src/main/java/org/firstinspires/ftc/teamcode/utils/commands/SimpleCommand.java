@@ -23,6 +23,7 @@ public abstract class SimpleCommand implements Command {
     @Override
     public void initialize() {
         timer.startTime();
+        init();
     }
 
     @Override
@@ -34,7 +35,8 @@ public abstract class SimpleCommand implements Command {
         return isDone();
     }
 
-    // user is only meant to override these two functions
+    // user is only meant to override these functions
+    public void init() {}
     public abstract void run();
     public abstract boolean isDone();
 

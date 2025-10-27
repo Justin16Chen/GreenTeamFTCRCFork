@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.utils.misc;
 import java.text.DecimalFormat;
 
 // helps for concise, easy printing to telemetry
-public class Rounder {
+public class MathUtils {
     public static DecimalFormat df = new DecimalFormat("#.##");
 
     public static String format2(Number num) {
@@ -21,5 +21,9 @@ public class Rounder {
         for (double num : nums)
             total += format2(num) + ", ";
         return total.substring(0, total.length() - 2);
+    }
+
+    public static double lerp(double a, double b, double t) {
+        return a + (b - a) * t;
     }
 }
