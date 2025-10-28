@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
 import org.firstinspires.ftc.teamcode.utils.commands.WaitUntilCommand;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.pinpoint.Pinpoint;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Sensor;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
@@ -23,6 +24,7 @@ public class Robot {
     public final Camera camera;
     public final BallColorSensor[] colorSensors;
     public final Drivetrain drivetrain;
+    public final Pinpoint odo;
     public final Intake intake;
     public final Flipper flipper;
     public final Shooter shooter;
@@ -32,6 +34,7 @@ public class Robot {
         subsystems = new ArrayList<>();
         sensors = new ArrayList<>();
 
+        odo = new Pinpoint(hardware.hardwareMap);
         camera = new Camera(hardware, telemetry);
         subsystems.add(camera);
         drivetrain = new Drivetrain(hardware, telemetry);
@@ -80,6 +83,7 @@ public class Robot {
 
     public void update() {
         // update ALL sensors before any subsystems
+        odo.update();
         for (Sensor sensor : sensors)
             sensor.update();
 
@@ -90,7 +94,7 @@ public class Robot {
 
     public SequentialCommandGroup shootBallCommand() {
         return new SequentialCommandGroup(
-                new WaitUntilCommand(shooter::isReadyToShoot, Shooter.maxSpeedUpTime),
+                new WaitUntilCommand(shooter::isReadyToShoot, Shooter.maxMotorSpeedUpTime),
                 new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
                 new WaitCommand(Flipper.rotationTimeMs),
                 new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),

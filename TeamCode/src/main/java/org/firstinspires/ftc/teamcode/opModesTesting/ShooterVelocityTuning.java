@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 
 @TeleOp(name="Shooter Test", group = "Testing")
 @Config
-public class ShooterTest extends ParentOpMode {
+public class ShooterVelocityTuning extends ParentOpMode {
     public static double dpadChangeIncrement = 0.1, joystickChangeIncrement = 0.01;
     private DcMotorEx intakeMotor;
     private ServoImplEx flipperServo;
@@ -35,11 +35,6 @@ public class ShooterTest extends ParentOpMode {
         rightServo = hardware.getRightHoodServo();
         targetServoPosition = 0.5;
         setServoPosition(targetServoPosition);
-
-
-//        leftAnalogInput = hardwareMap.get(AnalogInput.class, "leftHoodServoEncoder");
-//        rightAnalogInput = hardwareMap.get(AnalogInput.class, "rightHoodServoEncoder");
-
     }
 
     private void setServoPosition(double pos) {
@@ -47,9 +42,7 @@ public class ShooterTest extends ParentOpMode {
         rightServo.setPosition(pos);
     }
 
-    @Override
-    public void updateLoop() {
-
+    private void listenForIntakeInput() {
         if (g1.isRBClicked())
             intakeMotor.setPower(intakeMotor.getPower() == 0 ? Intake.collectPower : 0);
         if (g1.isYClicked())
@@ -59,13 +52,8 @@ public class ShooterTest extends ParentOpMode {
             flipperServo.setPosition(flipperBlocking ? Flipper.blockPosition : Flipper.openPosition);
             intakeMotor.setPower(0);
         }
-
-        // dpad increments
-        if (g1.isDpadUpClicked())
-            power += dpadChangeIncrement;
-        else if (g1.isDpadDownClicked())
-            power -= dpadChangeIncrement;
-
+    }
+    private void listenForHoodInput() {
         if (g2.isDpadUpPressed()) {
             targetServoPosition += 0.01;
             targetServoPosition = Range.clip(targetServoPosition, 0, 1);
@@ -76,6 +64,16 @@ public class ShooterTest extends ParentOpMode {
             targetServoPosition = Range.clip(targetServoPosition, 0, 1);
             setServoPosition(MathUtils.lerp(Shooter.hoodDownPosition, Shooter.hoodUpPosition, targetServoPosition));
         }
+    }
+    @Override
+    public void updateLoop() {
+        listenForIntakeInput();
+
+        // dpad increments
+        if (g1.isDpadUpClicked())
+            power += dpadChangeIncrement;
+        else if (g1.isDpadDownClicked())
+            power -= dpadChangeIncrement;
 
         // joystick increments
         if (!g1.isDpadUpPressed() && !g1.isDpadDownPressed())

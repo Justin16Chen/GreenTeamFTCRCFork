@@ -1,21 +1,24 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
+import org.firstinspires.ftc.teamcode.utils.misc.QuadraticEquation;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.StateSubsystem;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Transition;
 
 @Config
 public class Shooter extends StateSubsystem<Shooter.State> {
-    public static double maxSpeedUpTime = 5;
-    public static double kp = 0.01, ki = 0, kd = 0, kf = 0;
+
+    public static double maxMotorSpeedUpTime = 5;
+    public static double shooterKp = 0.01, shooterKi = 0, shooterKd = 0, shooterKf = 0;
     public static double hoodDownPosition = 0.99, hoodUpPosition = 0.4;
+    public static QuadraticEquation hoodEquation = new QuadraticEquation(1, 1, 1);
     public enum State {
         OFF,
         TRACK_SPEED
@@ -27,7 +30,7 @@ public class Shooter extends StateSubsystem<Shooter.State> {
     private double targetX, targetY;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        speedPid = new PIDFController(kp, ki, kd, kf);
+        speedPid = new PIDFController(shooterKp, shooterKi, shooterKd, shooterKf);
         targetSpeed = 0;
 
         setInitialState(State.OFF);
@@ -50,13 +53,22 @@ public class Shooter extends StateSubsystem<Shooter.State> {
 //                double hoodAngle = getHoodAngle();
 //                double distance = Math.sqrt(robot.drivetrain.);
 //                targetSpeed = calculateTargetFlywheelSpeed()
-                motor.setPower(speedPid.update(motor.getVelocity(AngleUnit.DEGREES)));
+                double velocity = motor.getVelocity(AngleUnit.RADIANS);
+                double power = speedPid.update(velocity);
+                motor.setPower(power);
+                double hoodPos = hoodEquation.calculate(velocity);
+                setServoPositions(hoodPos);
                 break;
         }
     }
 
     public boolean isReadyToShoot() {
         return true;
+    }
+    private void setServoPositions(double pos) {
+        double lerpedValue = MathUtils.lerp(hoodDownPosition, hoodUpPosition, pos);
+        leftServo.setPosition(lerpedValue);
+        rightServo.setPosition(lerpedValue);
     }
 
     @Override
