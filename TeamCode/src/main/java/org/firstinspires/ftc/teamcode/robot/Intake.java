@@ -2,46 +2,31 @@ package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
-import org.firstinspires.ftc.teamcode.utils.stateManagement.StateSubsystem;
-import org.firstinspires.ftc.teamcode.utils.stateManagement.Transition;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
-public class Intake extends StateSubsystem<Intake.State> {
-    public static double collectPower = 0.99, feedShooterTime = 0.1, feedShooterPowerYInt = 0.2, feedShooterPowerSlope = 0.25;
-    public static LineEquation feedShooterEquation = new LineEquation(feedShooterPowerSlope, feedShooterPowerYInt);
+public class Intake extends Subsystem {
+    public static double collectPower = 0.99, feedShooterTime = 0.1, feedShooterPower = 0.5;
 
     public enum State {
         ON, OFF, FEED_SHOOTER
     }
 
+    private State state;
     private DcMotorEx motor;
     private int numBalls;
+    private final ElapsedTime feedShooterTimer;
 
     public Intake(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        setInitialState(State.OFF);
         numBalls = 0;
-        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.ON, () -> {
-            motor.setPower(collectPower);
-            turnOnSensor(numBalls);
-        });
-
-        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.OFF, () -> {
-            motor.setPower(0);
-            turnOffAllSensors();
-        });
-        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.FEED_SHOOTER, () -> {
-            motor.setPower(feedShooterEquation.calculate(numBalls));
-            turnOffAllSensors();
-        });
-        setTransitionFunction(Transition.Type.TO_ANY_FROM, State.FEED_SHOOTER, () -> {
-            if (numBalls > 0)
-                numBalls--;
-        });
+        state = State.OFF;
+        feedShooterTimer = new ElapsedTime();
     }
 
     @Override
@@ -51,7 +36,7 @@ public class Intake extends StateSubsystem<Intake.State> {
 
     @Override
     public void updateState() {
-        switch (getState()) {
+        switch (state) {
             case OFF:
                 if (keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE) && numBalls < 3) {
                     setState(State.ON);
@@ -67,10 +52,8 @@ public class Intake extends StateSubsystem<Intake.State> {
                 // update number of balls in transfer
                 if (robot.colorSensors[numBalls].firstTimeSeeingBallFromLatestCache()) {
                     numBalls++;
-
                     if (numBalls < 3)
                         turnOnSensor(numBalls);
-
                     else {
                         setState(State.OFF);
                         break;
@@ -78,8 +61,29 @@ public class Intake extends StateSubsystem<Intake.State> {
                 }
                 break;
             case FEED_SHOOTER:
-                if (getStateTime() > feedShooterTime)
+                if (feedShooterTimer.seconds() > feedShooterTime)
                     setState(State.OFF);
+        }
+    }
+
+    public void setState(State newState) {
+        if (state == newState)
+            return;
+
+        state = newState;
+
+        if (state == State.ON) {
+            motor.setPower(collectPower);
+            turnOnSensor(numBalls);
+        }
+        else if (state == State.OFF) {
+            motor.setPower(0);
+            turnOffAllSensors();
+        }
+        else if (state == State.FEED_SHOOTER) {
+            feedShooterTimer.reset();
+            motor.setPower(feedShooterPower);
+            turnOnSensor(numBalls);
         }
     }
 
@@ -98,7 +102,7 @@ public class Intake extends StateSubsystem<Intake.State> {
     }
     public void printInfo() {
         telemetry.addLine("===INTAKE===");
-        telemetry.addData("state", getState());
+        telemetry.addData("state", state);
         telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE));
         telemetry.addData("motor power", motor.getPower());
         telemetry.addData("num balls", numBalls);
