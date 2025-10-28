@@ -6,14 +6,15 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
 import org.firstinspires.ftc.teamcode.utils.misc.QuadraticEquation;
-import org.firstinspires.ftc.teamcode.utils.stateManagement.StateSubsystem;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Transition;
 
 @Config
-public class Shooter extends StateSubsystem<Shooter.State> {
+public class Shooter extends Subsystem {
 
     public static double maxMotorSpeedUpTime = 5;
     public static double shooterKp = 0.01, shooterKi = 0, shooterKd = 0, shooterKf = 0;
@@ -23,6 +24,7 @@ public class Shooter extends StateSubsystem<Shooter.State> {
         OFF,
         TRACK_SPEED
     }
+    private State state;
     private DcMotorEx motor;
     private ServoImplEx leftServo, rightServo;
     private final PIDFController speedPid; // input error between current speed and target speed, output desired power
@@ -33,8 +35,7 @@ public class Shooter extends StateSubsystem<Shooter.State> {
         speedPid = new PIDFController(shooterKp, shooterKi, shooterKd, shooterKf);
         targetSpeed = 0;
 
-        setInitialState(State.OFF);
-        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.OFF, () -> motor.setPower(0));
+        state = State.TRACK_SPEED;
     }
 
     @Override
@@ -46,19 +47,29 @@ public class Shooter extends StateSubsystem<Shooter.State> {
 
     @Override
     public void updateState() {
-        switch (getState()) {
+        switch (state) {
             case OFF:
                 break;
             case TRACK_SPEED:
-//                double hoodAngle = getHoodAngle();
-//                double distance = Math.sqrt(robot.drivetrain.);
-//                targetSpeed = calculateTargetFlywheelSpeed()
+                if (keybinds.check(Keybinds.D1Trigger.SHOOT) && robot != null) {
+                    robot.shootBallCommand().schedule();
+                }
                 double velocity = motor.getVelocity(AngleUnit.RADIANS);
                 double power = speedPid.update(velocity);
                 motor.setPower(power);
                 double hoodPos = hoodEquation.calculate(velocity);
                 setServoPositions(hoodPos);
                 break;
+        }
+    }
+
+    public void setState(State newState) {
+        if (state == newState)
+            return;
+        state = newState;
+        if (state == State.OFF) {
+            motor.setPower(0);
+            setServoPositions(hoodDownPosition);
         }
     }
 
@@ -74,10 +85,9 @@ public class Shooter extends StateSubsystem<Shooter.State> {
     @Override
     public void printInfo() {
         telemetry.addLine("===SHOOTER===");
-        telemetry.addData("state", getState());
+        telemetry.addData("state", state);
         telemetry.addData("motor power", motor.getPower());
-//        telemetry.addData("left servo power", leftServo.getPower());
-//        telemetry.addData("right servo power", rightServo.getPower());
-//        telemetry.addData("left servo position", leftServo.)
+        telemetry.addData("left servo position", leftServo.getPosition());
+        telemetry.addData("right servo position", rightServo.getPosition());
     }
 }

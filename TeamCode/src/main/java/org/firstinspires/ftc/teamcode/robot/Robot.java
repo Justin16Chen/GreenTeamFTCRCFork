@@ -70,8 +70,10 @@ public class Robot {
         this.g1 = g1;
         this.g2 = g2;
 
-        for (Subsystem subsystem : subsystems)
+        for (Subsystem subsystem : subsystems) {
             subsystem.setInputInfo(keybinds);
+            subsystem.setRobot(this);
+        }
     }
 
     public void declareHardware() {
@@ -94,6 +96,7 @@ public class Robot {
 
     public SequentialCommandGroup shootBallCommand() {
         return new SequentialCommandGroup(
+                new InstantCommand(() -> intake.setState(Intake.State.OFF)),
                 new WaitUntilCommand(shooter::isReadyToShoot, Shooter.maxMotorSpeedUpTime),
                 new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
                 new WaitCommand(Flipper.rotationTimeMs),

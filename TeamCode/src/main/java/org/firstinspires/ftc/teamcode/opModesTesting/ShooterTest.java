@@ -53,10 +53,10 @@ public class ShooterTest extends ParentOpMode {
         if (g1.isRBClicked())
             intakeMotor.setPower(intakeMotor.getPower() == 0 ? Intake.collectPower : 0);
         if (g1.isYClicked())
-            intakeMotor.setPower(Intake.feedShooterPowerYInt + Intake.feedShooterPowerSlope);
+            intakeMotor.setPower(Intake.feedShooterPower);
         if (g1.isLBClicked()) {
             flipperBlocking = !flipperBlocking;
-            flipperServo.setPosition(flipperBlocking ? Flipper.blockPosition : Flipper.openPosition);
+            flipperServo.setPosition(flipperBlocking ? Flipper.closePosition : Flipper.openPosition);
             intakeMotor.setPower(0);
         }
 

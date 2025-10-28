@@ -65,7 +65,6 @@ public class Intake extends Subsystem {
                     setState(State.OFF);
         }
     }
-
     public void setState(State newState) {
         if (state == newState)
             return;

@@ -40,7 +40,7 @@ public class ParkTest extends OpMode {
         }
         telemetry.addData("a", "toggle park");
         telemetry.addData("a pressed", g1.isAPressed());
-        telemetry.addData("current park servo position", park.getServoPositions());
+        park.printInfo();
         telemetry.update();
     }
 }

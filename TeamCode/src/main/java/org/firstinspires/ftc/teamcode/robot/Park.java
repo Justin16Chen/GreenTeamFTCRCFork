@@ -21,21 +21,22 @@ public class Park extends Subsystem {
 
     @Override
     public void updateState() {
-        if (keybinds.check(Keybinds.D1Trigger.PARK))
+        if (keybinds.check(Keybinds.D1Trigger.PARK)) {
             setServoPositions(parkPosition);
 
+            if (robot != null)
+                robot.shooter.setState(Shooter.State.OFF);
+        }
     }
 
     @Override
     public void printInfo() {
-
+        telemetry.addLine("===PARK===");
+        telemetry.addData("left servo pos", leftServo.getPosition());
+        telemetry.addData("right servo pos", rightServo.getPosition());
     }
-
     public void setServoPositions(double position) {
         leftServo.setPosition(position);
         rightServo.setPosition(position);
-    }
-    public double getServoPositions() {
-        return leftServo.getPosition();
     }
 }

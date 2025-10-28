@@ -4,22 +4,20 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.stateManagement.StateSubsystem;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
-public class Flipper extends StateSubsystem<Flipper.State> {
-    public static double blockPosition = 0.01, openPosition = 0.99;
+public class Flipper extends Subsystem {
+    public static double closePosition = 0.01, openPosition = 0.99;
     public static long rotationTimeMs = 200;
     public enum State {
         OPEN, CLOSED
     }
+    private State state;
     private ServoImplEx servo;
     public Flipper(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        setInitialState(State.OPEN);
-
-        setTransitionFunction(State.CLOSED, State.OPEN, () -> servo.setPosition(openPosition));
-        setTransitionFunction(State.OPEN, State.CLOSED, () -> servo.setPosition(blockPosition));
+        state = State.OPEN;
     }
 
     @Override
@@ -28,9 +26,16 @@ public class Flipper extends StateSubsystem<Flipper.State> {
     }
 
     @Override
-    public void updateState() {
-        if (g1.isLBClicked())
-            setState(getState() == State.OPEN ? State.CLOSED : State.OPEN);
+    public void updateState() {}
+
+    public void setState(State newState) {
+        if (state == newState)
+            return;
+        state = newState;
+        if (state == State.OPEN)
+            servo.setPosition(openPosition);
+        else if (state == State.CLOSED)
+            servo.setPosition(closePosition);
     }
 
     @Override
