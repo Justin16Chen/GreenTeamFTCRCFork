@@ -9,15 +9,15 @@ public class Transition<E extends Enum<E>> {
         FROM_ANY_TO,
         TO_ANY_FROM
     }
-    private final Type type;
     public final E from, to;
-    public Transition(E from, E to) {
-        this.type = null;
+    public final Runnable function;
+    public Transition(E from, E to, Runnable function) {
         this.from = from;
         this.to = to;
+        this.function = function;
     }
-    public Transition(Type type, E transition) {
-        this.type = type;
+    public Transition(Type type, E transition, Runnable function) {
+        this.function = function;
         switch (type) {
             case TO_ANY_FROM:
                 this.from = transition;
@@ -35,22 +35,15 @@ public class Transition<E extends Enum<E>> {
     public boolean equals(Object other) {
         if (other.getClass() != Transition.class)
             return false;
-        Transition<E> otherTransition = (Transition<E>) other;
+        Transition<?> otherTransition = (Transition<?>) other;
         boolean fromMatches = from == null || otherTransition.from == null || from == otherTransition.from;
         boolean toMatches = to == null || otherTransition.to == null || to == otherTransition.to;
-//        throw new RuntimeException("this: " + this + " other: " + otherTransition + " | from: " + fromMatches + ", to: " + toMatches);
         return toMatches && fromMatches;
     }
 
     @Override
     public int hashCode() {
-        int result = 1;
-        if (from != null)
-            result = 31 + from.hashCode();
-        if (to != null)
-            result = 31 * result + to.hashCode();
-        return result;
-//        return Objects.hash(type);
+        return 0; // I don't think there is a better way to do this. welp
     }
 
     @NonNull

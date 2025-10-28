@@ -25,12 +25,12 @@ public class Intake extends StateSubsystem<Intake.State> {
         super(hardware, telemetry);
         setInitialState(State.OFF);
         numBalls = 0;
-        setTransitionFunction(State.OFF, State.ON, () -> {
+        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.ON, () -> {
             motor.setPower(collectPower);
             turnOnSensor(numBalls);
         });
 
-        setTransitionFunction(State.ON, State.OFF, () -> {
+        setTransitionFunction(Transition.Type.FROM_ANY_TO, State.OFF, () -> {
             motor.setPower(0);
             turnOffAllSensors();
         });
