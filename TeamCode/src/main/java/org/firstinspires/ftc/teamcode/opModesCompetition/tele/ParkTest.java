@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opModesTesting;
+package org.firstinspires.ftc.teamcode.opModesCompetition.tele;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Park;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 
-@TeleOp(name="Park Test", group = "Utility")
+@TeleOp(name="Park Test", group = "Competition")
 @Config
 public class ParkTest extends OpMode {
     private GamepadTracker g1;

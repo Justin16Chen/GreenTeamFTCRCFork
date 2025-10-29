@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 
 // standardizes retrieving from hardware map
 // makes reusing robot components in main tele and other test teles really straightforwards
@@ -18,6 +20,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 public class Hardware {
     // store these as static so they can be adjusted on dashboard for ease of use
     public static String cameraName = "webcam", frontColorSensorName = "frontColorSensor", middleColorSensorName = "middleColorSensor", backColorSensorName = "backColorSensor";
+    public static String pinpointName = "odo";
+    public static double pinpointXOffset = 5.562, pinpointYOffset = -0.05;
     public static String frontLeftName = "FL", frontRightName = "FR", backLeftName = "BL", backRightName = "BR";
     public static boolean reverseFrontLeft = true, reverseFrontRight = false, reverseBackLeft = true, reverseBackRight = false;
     public static String intakeName = "intake", shooterName = "shooter";
@@ -37,7 +41,6 @@ public class Hardware {
     public CameraName getCamera() {
         return hardwareMap.get(WebcamName.class, cameraName);
     }
-
     public DcMotorEx getFLDriveMotor() {
         DcMotorEx motor = hardwareMap.get(DcMotorEx.class, frontLeftName);
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

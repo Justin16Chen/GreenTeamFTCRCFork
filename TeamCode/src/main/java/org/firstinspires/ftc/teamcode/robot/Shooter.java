@@ -11,13 +11,16 @@ import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
 import org.firstinspires.ftc.teamcode.utils.misc.QuadraticEquation;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
-import org.firstinspires.ftc.teamcode.utils.stateManagement.Transition;
 
 @Config
 public class Shooter extends Subsystem {
 
-    public static double maxMotorSpeedUpTime = 5;
-    public static double shooterKp = 0.01, shooterKi = 0, shooterKd = 0, shooterKf = 0;
+    public static class MotorParams {
+        public double maxMotorSpeedUpTime = 5;
+        public double shooterKp = 0.01, shooterKi = 0, shooterKd = 0, shooterKf = 0;
+        public double velocityErrorThreshold = Math.toRadians(10), hoodErrorThreshold = 0.01;
+    }
+    public static MotorParams mp = new MotorParams();
     public static double hoodDownPosition = 0.99, hoodUpPosition = 0.4;
     public static QuadraticEquation hoodEquation = new QuadraticEquation(1, 1, 1);
     public enum State {
@@ -27,15 +30,14 @@ public class Shooter extends Subsystem {
     private State state;
     private DcMotorEx motor;
     private ServoImplEx leftServo, rightServo;
-    private final PIDFController speedPid; // input error between current speed and target speed, output desired power
-    private double targetSpeed;
-    private double targetX, targetY;
+    private final PIDFController speedPidf; // input error between current speed and target speed, output desired power
+    private double targetVelocity, targetHoodPos;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        speedPid = new PIDFController(shooterKp, shooterKi, shooterKd, shooterKf);
-        targetSpeed = 0;
+        speedPidf = new PIDFController(mp.shooterKp, mp.shooterKi, mp.shooterKd, mp.shooterKf);
+        targetVelocity = 0;
 
-        state = State.TRACK_SPEED;
+        setState(State.TRACK_SPEED);
     }
 
     @Override
@@ -55,10 +57,10 @@ public class Shooter extends Subsystem {
                     robot.shootBallCommand().schedule();
                 }
                 double velocity = motor.getVelocity(AngleUnit.RADIANS);
-                double power = speedPid.update(velocity);
+                double power = speedPidf.update(velocity);
                 motor.setPower(power);
-                double hoodPos = hoodEquation.calculate(velocity);
-                setServoPositions(hoodPos);
+                targetHoodPos = hoodEquation.calculate(velocity);
+                setServoPositions(targetHoodPos);
                 break;
         }
     }
@@ -71,10 +73,20 @@ public class Shooter extends Subsystem {
             motor.setPower(0);
             setServoPositions(hoodDownPosition);
         }
+        else if (state == State.TRACK_SPEED) {
+            speedPidf.reset();
+            speedPidf.setTarget(targetVelocity);
+        }
     }
 
     public boolean isReadyToShoot() {
-        return true;
+        double currentVelocity = motor.getVelocity(AngleUnit.RADIANS);
+        double velocityError = Math.abs(currentVelocity - targetVelocity);
+        double hoodError = Math.abs(getAvgServoPosition() - targetHoodPos);
+        return velocityError < mp.velocityErrorThreshold && hoodError < mp.hoodErrorThreshold;
+    }
+    public double getAvgServoPosition() {
+        return (leftServo.getPosition() + rightServo.getPosition()) / 2.;
     }
     private void setServoPositions(double pos) {
         double lerpedValue = MathUtils.lerp(hoodDownPosition, hoodUpPosition, pos);

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opModesCompetition.auto;
 
+import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 
@@ -14,9 +15,9 @@ import org.firstinspires.ftc.teamcode.utils.pidDrive.Tolerance;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.Waypoint;
 
 public class SimpleAuto extends ParentOpMode {
-    public static Pose2D shootPose = new Pose2D(DistanceUnit.INCH, 10, 10, AngleUnit.RADIANS, 0);
-    public static Tolerance shootTolerance = new Tolerance(1, 0.5);
-    public static DriveParams shootDriveParams = new DriveParams();
+    public static Pose2d shootPose = new Pose2d(24, 0, 0);
+    public static Tolerance shootTolerance = new Tolerance(2, 0.5);
+    public static DriveParams shootDriveParams = new DriveParams(0.5, 0, 0, 0.8, 0, 0);
     private Robot robot;
     @Override
     public void initiation() {

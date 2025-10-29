@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.robot.Shooter;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 
-@TeleOp(name="Shooter Test", group = "Testing")
+@TeleOp(name="Shooter Velocity Test", group = "Testing")
 @Config
 public class ShooterVelocityTuning extends ParentOpMode {
     public static double dpadChangeIncrement = 0.1, joystickChangeIncrement = 0.01;

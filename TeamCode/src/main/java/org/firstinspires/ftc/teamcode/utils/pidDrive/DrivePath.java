@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.utils.pidDrive;
 
+import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.Command;
 import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.geometry.Vector2d;
@@ -8,10 +9,9 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.robot.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
-import org.firstinspires.ftc.teamcode.utils.pinpoint.Pinpoint;
+import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,14 +19,14 @@ import java.util.Set;
 
 public class DrivePath implements Command {
     private final Drivetrain drivetrain;
-    private final Pinpoint odo;
+    private final PinpointLocalizer odo;
     private final ArrayList<Waypoint> waypoints;
     private int curWaypointIndex; // the waypoint the drivetrain is currently trying to go to
     private PIDFController totalDistancePID, waypointDistancePID, headingPID;
     private final ElapsedTime waypointTimer;
     private boolean reachedDestination;
 
-    public DrivePath(Drivetrain drivetrain, Pinpoint odo, Waypoint destination) {
+    public DrivePath(Drivetrain drivetrain, PinpointLocalizer odo, Waypoint destination) {
         this.drivetrain = drivetrain;
         this.odo = odo;
 
@@ -81,15 +81,15 @@ public class DrivePath implements Command {
 
     @Override
     public void execute() {
-        Pose2D pose = odo.getPose();
-        double x = pose.getX(DistanceUnit.INCH), y = pose.getY(DistanceUnit.INCH), headingRad = pose.getHeading(AngleUnit.RADIANS);
+        Pose2d pose = odo.getPose();
+        double x = pose.position.x, y = pose.position.y, headingRad = pose.heading.toDouble();
 
         // finding direction that motor powers should be applied in
         Vector2d targetDir = updateTargetDir(x, y, headingRad);
 
         // note: error is calculated in field's coordinate plane
-        double xWaypointError = Math.abs(pose.getX(DistanceUnit.INCH) - getCurWaypoint().x());
-        double yWaypointError = Math.abs(pose.getY(DistanceUnit.INCH) - getCurWaypoint().y());
+        double xWaypointError = Math.abs(x - getCurWaypoint().x());
+        double yWaypointError = Math.abs(y - getCurWaypoint().y());
         double headingWaypointError = Math.abs(headingRad - getCurWaypoint().headingRad());
 
         // tolerance
@@ -121,8 +121,8 @@ public class DrivePath implements Command {
                 resetToNewWaypoint();
 
                 // recalculate new waypoint errors
-                xWaypointError = Math.abs(pose.getX(DistanceUnit.INCH) - getCurWaypoint().x());
-                yWaypointError = Math.abs(pose.getY(DistanceUnit.INCH) - getCurWaypoint().y());
+                xWaypointError = Math.abs(x - getCurWaypoint().x());
+                yWaypointError = Math.abs(y - getCurWaypoint().y());
             }
         }
 

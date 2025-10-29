@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 
@@ -8,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
 import org.firstinspires.ftc.teamcode.utils.commands.WaitUntilCommand;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
-import org.firstinspires.ftc.teamcode.utils.pinpoint.Pinpoint;
+import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Sensor;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
@@ -24,7 +25,7 @@ public class Robot {
     public final Camera camera;
     public final BallColorSensor[] colorSensors;
     public final Drivetrain drivetrain;
-    public final Pinpoint odo;
+    public final PinpointLocalizer odo;
     public final Intake intake;
     public final Flipper flipper;
     public final Shooter shooter;
@@ -34,7 +35,7 @@ public class Robot {
         subsystems = new ArrayList<>();
         sensors = new ArrayList<>();
 
-        odo = new Pinpoint(hardware.hardwareMap);
+        odo = new PinpointLocalizer(hardware.hardwareMap, new Pose2d(0, 0, 0));
         camera = new Camera(hardware, telemetry);
         subsystems.add(camera);
         drivetrain = new Drivetrain(hardware, telemetry);
@@ -97,7 +98,7 @@ public class Robot {
     public SequentialCommandGroup shootBallCommand() {
         return new SequentialCommandGroup(
                 new InstantCommand(() -> intake.setState(Intake.State.OFF)),
-                new WaitUntilCommand(shooter::isReadyToShoot, Shooter.maxMotorSpeedUpTime),
+//                new WaitUntilCommand(shooter::isReadyToShoot, Shooter.mp.maxMotorSpeedUpTime),
                 new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
                 new WaitCommand(Flipper.rotationTimeMs),
                 new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),

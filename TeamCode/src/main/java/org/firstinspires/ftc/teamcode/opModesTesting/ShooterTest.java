@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.robot.Flipper;
 import org.firstinspires.ftc.teamcode.robot.Intake;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
@@ -15,7 +16,7 @@ import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 @TeleOp(name="Shooter Test", group = "Testing")
 @Config
 public class ShooterTest extends ParentOpMode {
-    public static double dpadChangeIncrement = 0.1, joystickChangeIncrement = 0.01;
+    public static double joystickChangeIncrement = 0.01;
     private DcMotorEx intakeMotor;
     private ServoImplEx flipperServo;
     private boolean flipperBlocking;
@@ -35,10 +36,6 @@ public class ShooterTest extends ParentOpMode {
         rightServo = hardware.getRightHoodServo();
         targetServoPosition = 0.5;
         setServoPosition(targetServoPosition);
-
-
-//        leftAnalogInput = hardwareMap.get(AnalogInput.class, "leftHoodServoEncoder");
-//        rightAnalogInput = hardwareMap.get(AnalogInput.class, "rightHoodServoEncoder");
 
     }
 
@@ -60,18 +57,12 @@ public class ShooterTest extends ParentOpMode {
             intakeMotor.setPower(0);
         }
 
-        // dpad increments
-        if (g1.isDpadUpClicked())
-            power += dpadChangeIncrement;
-        else if (g1.isDpadDownClicked())
-            power -= dpadChangeIncrement;
-
-        if (g2.isDpadUpPressed()) {
+        if (g1.isDpadUpPressed()) {
             targetServoPosition += 0.01;
             targetServoPosition = Range.clip(targetServoPosition, 0, 1);
             setServoPosition(MathUtils.lerp(Shooter.hoodDownPosition, Shooter.hoodUpPosition, targetServoPosition));
         }
-        else if (g2.isDpadDownPressed()) {
+        else if (g1.isDpadDownPressed()) {
             targetServoPosition -= 0.01;
             targetServoPosition = Range.clip(targetServoPosition, 0, 1);
             setServoPosition(MathUtils.lerp(Shooter.hoodDownPosition, Shooter.hoodUpPosition, targetServoPosition));
@@ -90,6 +81,14 @@ public class ShooterTest extends ParentOpMode {
 //        shooterMotor.setVelocity(power, AngleUnit.DEGREES);
         g1.update();
 
+        telemetry.addLine("===CONTROLS===");
+        telemetry.addData("adjust shooter motor power", "left joystick");
+        telemetry.addData("stop shooter motor", "a");
+        telemetry.addData("adjust hood position", "dpad up, dpad down");
+        telemetry.addData("toggle flipper", "left bumper");
+        telemetry.addData("intake full power", "right bumper");
+        telemetry.addData("intake half power", "y");
+        telemetry.addLine();
         telemetry.addLine("===HOOD SERVOS===");
         telemetry.addData("target servo position", targetServoPosition);
         telemetry.addData("left servo position", leftServo.getPosition());
@@ -98,17 +97,10 @@ public class ShooterTest extends ParentOpMode {
         telemetry.addData("move hood down", "d2 dpad down");
         telemetry.addLine();
         telemetry.addLine("===MOTOR===");
-        telemetry.addData("d1 dpad up", g1.isDpadUpPressed());
-        telemetry.addData("d1 dpad down", g1.isDpadDownPressed());
-        telemetry.addData("d1 left stick y", g1.getLeftStickY());
-        telemetry.addData("d1 a", g1.isAPressed());
-        telemetry.addData("discretely increase power", "d1 dpad up");
-        telemetry.addData("discretely decrease power", "d1 dpad down");
-        telemetry.addData("continuously change power", "left stick y");
-        telemetry.addData("reset power", "a");
-
-        telemetry.addData("desired speed (deg/sec)", power);
+        telemetry.addData("desired power (deg/sec)", power);
         telemetry.addData("motor power", shooterMotor.getPower());
+        telemetry.addData("motor deg/sec", MathUtils.format2(shooterMotor.getVelocity(AngleUnit.DEGREES)));
+        telemetry.addLine();
         telemetry.update();
     }
 }

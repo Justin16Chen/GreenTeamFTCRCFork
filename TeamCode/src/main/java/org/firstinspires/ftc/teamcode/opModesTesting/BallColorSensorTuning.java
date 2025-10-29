@@ -12,17 +12,12 @@ import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 @Config
 public class BallColorSensorTuning extends ParentOpMode {
     public static String colorSensorName = "backColorSensor";
-    private Intake intake;
     private BallColorSensor colSensor;
     private double[] mins, maxes;
     private boolean tracking, seenBallWhileTracking;
 
     @Override
     public void initiation() {
-        intake = new Intake(hardware, telemetry);
-        intake.declareHardware();
-        intake.setInputInfo(keybinds);
-
         colSensor = new BallColorSensor(hardware, telemetry, colorSensorName, true);
         colSensor.declareHardware();
 

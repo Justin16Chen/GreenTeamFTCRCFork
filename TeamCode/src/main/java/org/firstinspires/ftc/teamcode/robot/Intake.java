@@ -50,7 +50,7 @@ public class Intake extends Subsystem {
                 }
 
                 // update number of balls in transfer
-                if (robot.colorSensors[numBalls].firstTimeSeeingBallFromLatestCache()) {
+                if (robot != null && robot.colorSensors[numBalls].firstTimeSeeingBallFromLatestCache()) {
                     numBalls++;
                     if (numBalls < 3)
                         turnOnSensor(numBalls);
@@ -88,12 +88,14 @@ public class Intake extends Subsystem {
 
     // turn on the appropriate sensor
     private void turnOnSensor(int numBalls) {
-        for(int i = 0; i<3;i++)
-            robot.colorSensors[i].setTurnedOn(i == numBalls);
+        if (robot != null)
+            for(int i = 0; i<3;i++)
+                robot.colorSensors[i].setTurnedOn(i == numBalls);
     }
     private void turnOffAllSensors() {
-        for(int i = 0; i<3;i++)
-            robot.colorSensors[i].setTurnedOn(false);
+        if (robot != null)
+            for(int i = 0; i<3;i++)
+                robot.colorSensors[i].setTurnedOn(false);
     }
 
     public int getNumBalls() {

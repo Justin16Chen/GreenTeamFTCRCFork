@@ -3,8 +3,6 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.utils.pinpoint.Pinpoint;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 public class Drivetrain extends Subsystem {
