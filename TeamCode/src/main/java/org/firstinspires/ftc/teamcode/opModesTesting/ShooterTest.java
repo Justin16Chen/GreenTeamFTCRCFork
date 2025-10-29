@@ -24,7 +24,8 @@ public class ShooterTest extends ParentOpMode {
     private ServoImplEx leftServo, rightServo;
     private double targetServoPosition;
 
-    private double power;
+    private double intakePower;
+    private double shooterPower;
 
     @Override
     public void initiation() {
@@ -47,10 +48,8 @@ public class ShooterTest extends ParentOpMode {
     @Override
     public void updateLoop() {
 
-        if (g1.isRBClicked())
-            intakeMotor.setPower(intakeMotor.getPower() == 0 ? Intake.collectPower : 0);
-        if (g1.isYClicked())
-            intakeMotor.setPower(Intake.feedShooterPower);
+        intakePower -= g1.getRightStickY();
+        intakeMotor.setPower(intakePower);
         if (g1.isLBClicked()) {
             flipperBlocking = !flipperBlocking;
             flipperServo.setPosition(flipperBlocking ? Flipper.closePosition : Flipper.openPosition);
@@ -70,15 +69,14 @@ public class ShooterTest extends ParentOpMode {
 
         // joystick increments
         if (!g1.isDpadUpPressed() && !g1.isDpadDownPressed())
-            power -= g1.getLeftStickY() * joystickChangeIncrement;
+            shooterPower -= g1.getLeftStickY() * joystickChangeIncrement;
 
         // reset
         if (g1.isAClicked())
-            power = 0;
-        power = Range.clip(power, -0.99, 0.99);
-        shooterMotor.setPower(power);
+            shooterPower = 0;
+        shooterPower = Range.clip(shooterPower, -0.99, 0.99);
+        shooterMotor.setPower(shooterPower);
 
-//        shooterMotor.setVelocity(power, AngleUnit.DEGREES);
         g1.update();
 
         telemetry.addLine("===CONTROLS===");
@@ -86,8 +84,7 @@ public class ShooterTest extends ParentOpMode {
         telemetry.addData("stop shooter motor", "a");
         telemetry.addData("adjust hood position", "dpad up, dpad down");
         telemetry.addData("toggle flipper", "left bumper");
-        telemetry.addData("intake full power", "right bumper");
-        telemetry.addData("intake half power", "y");
+        telemetry.addData("adjust intake motor power", "right joystick");
         telemetry.addLine();
         telemetry.addLine("===HOOD SERVOS===");
         telemetry.addData("target servo position", targetServoPosition);
@@ -96,11 +93,15 @@ public class ShooterTest extends ParentOpMode {
         telemetry.addData("move hood up", "d2 dpad up");
         telemetry.addData("move hood down", "d2 dpad down");
         telemetry.addLine();
-        telemetry.addLine("===MOTOR===");
-        telemetry.addData("desired power (deg/sec)", power);
-        telemetry.addData("motor power", shooterMotor.getPower());
-        telemetry.addData("motor deg/sec", MathUtils.format2(shooterMotor.getVelocity(AngleUnit.DEGREES)));
+        telemetry.addLine("===SHOOTER MOTOR===");
+        telemetry.addData("desired shooter power", shooterPower);
+        telemetry.addData("actual shooter power", shooterMotor.getPower());
+        telemetry.addData("motor deg/sec", MathUtils.format3(shooterMotor.getVelocity(AngleUnit.DEGREES)));
         telemetry.addLine();
+        telemetry.addLine("===INTAKE & TRANSFER===");
+        telemetry.addData("desired intake motor power", MathUtils.format3(intakePower));
+        telemetry.addData("actual intake motor power", MathUtils.format3(intakeMotor.getPower()));
+        telemetry.addData("flipper position", flipperServo.getPosition());
         telemetry.update();
     }
 }

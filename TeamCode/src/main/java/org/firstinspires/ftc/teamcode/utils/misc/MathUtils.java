@@ -9,10 +9,11 @@ public class MathUtils {
     public static String format2(Number num) {
         return format(num, 2);
     }
+    public static String format3(Number num) { return format(num, 3); }
     public static String format(Number num, int decimalPlaces) {
-        String decimals = "";
+        StringBuilder decimals = new StringBuilder();
         for (int i=0; i<decimalPlaces; i++)
-            decimals += "#";
+            decimals.append("#");
         DecimalFormat customDf = new DecimalFormat("#." + decimals);
         return customDf.format(num);
     }
