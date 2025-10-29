@@ -6,8 +6,6 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.robot.Drivetrain;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
@@ -34,7 +32,7 @@ public class SuperBasicDriveTele extends OpMode {
         dt.declareHardware();
         dt.setInputInfo(new TeleKeybinds(g1, g2));
 
-        pinpoint = new PinpointLocalizer(hardwareMap, new Pose2d(0, 0, 0));
+        pinpoint = new PinpointLocalizer(hardwareMap, new Pose2d(0, 0, 0), telemetry);
 
     }
 
@@ -54,8 +52,8 @@ public class SuperBasicDriveTele extends OpMode {
 
         telemetry.addLine();
         telemetry.addLine("PINPOINT");
-        telemetry.addData("position (in)", MathUtils.format2(pinpoint.getPose().position.x) + ", " + MathUtils.format2(pinpoint.getPose().position.y));
-        telemetry.addData("heading (deg)", MathUtils.format2(pinpoint.getPose().heading.toDouble()));
+        telemetry.addData("position (in)", MathUtils.format2(pinpoint.pose().position.x) + ", " + MathUtils.format2(pinpoint.pose().position.y));
+        telemetry.addData("heading (deg)", MathUtils.format2(pinpoint.pose().heading.toDouble()));
 
         telemetry.update();
     }

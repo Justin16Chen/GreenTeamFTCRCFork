@@ -7,6 +7,7 @@ public abstract class Keybinds {
     public enum D1Trigger {
         TURN_ON_INTAKE,
         AUTO_AIM,
+        PREPARE_FLYWHEEL,
         SHOOT,
         PARK
     }

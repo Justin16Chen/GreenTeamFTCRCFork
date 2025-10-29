@@ -36,11 +36,25 @@ public class EverythingTele extends OpMode {
         g2.update();
 
         robot.update();
-        robot.intake.printInfo();
 
+        telemetry.addLine("=====SUBSYSTEMS=====");
+        telemetry.addLine();
+        robot.drivetrain.printInfo();
+        telemetry.addLine();
+        robot.intake.printInfo();
+        telemetry.addLine();
+        robot.flipper.printInfo();
+        telemetry.addLine();
+        robot.shooter.printInfo();
+        telemetry.addLine();
+        robot.park.printInfo();
+
+        telemetry.addLine("=====SENSORS=====");
+        robot.pinpoint.printInfo();
+        telemetry.addLine();
         for (BallColorSensor colorSensor : robot.colorSensors)
             colorSensor.printInfo();
-        
+
         telemetry.update();
     }
 

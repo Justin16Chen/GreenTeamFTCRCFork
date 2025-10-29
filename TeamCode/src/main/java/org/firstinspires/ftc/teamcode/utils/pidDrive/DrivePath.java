@@ -7,8 +7,6 @@ import com.arcrobotics.ftclib.geometry.Vector2d;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.robot.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
 import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
@@ -81,7 +79,7 @@ public class DrivePath implements Command {
 
     @Override
     public void execute() {
-        Pose2d pose = odo.getPose();
+        Pose2d pose = odo.pose();
         double x = pose.position.x, y = pose.position.y, headingRad = pose.heading.toDouble();
 
         // finding direction that motor powers should be applied in

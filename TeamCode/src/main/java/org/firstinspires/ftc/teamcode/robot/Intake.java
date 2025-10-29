@@ -56,6 +56,7 @@ public class Intake extends Subsystem {
                         turnOnSensor(numBalls);
                     else {
                         setState(State.OFF);
+                        robot.shooter.setState(Shooter.State.TRACK_SHOOTER_SPEED); // start speeding up the shooter
                         break;
                     }
                 }

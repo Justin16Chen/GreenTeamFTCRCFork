@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.utils.pinpoint;
 
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -12,6 +13,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 
 import java.util.Objects;
 
@@ -29,11 +31,14 @@ public final class PinpointLocalizer implements Localizer {
 
     private Pose2d txWorldPinpoint;
     private Pose2d txPinpointRobot = new Pose2d(0, 0, 0);
+    private final Telemetry telemetry;
 
-    public PinpointLocalizer(HardwareMap hardwareMap, Pose2d initialPose) {
+    public PinpointLocalizer(HardwareMap hardwareMap, Pose2d initialPose, Telemetry telemetry) {
+        this.telemetry = telemetry;
+
         // TODO: make sure your config has a Pinpoint device with this name
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        driver = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+        driver = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
         driver.setEncoderResolution(20, DistanceUnit.MM); //1.0 / mmPerTick (FIX VALUE)
         driver.setOffsets(
@@ -55,7 +60,7 @@ public final class PinpointLocalizer implements Localizer {
     }
 
     @Override
-    public Pose2d getPose() {
+    public Pose2d pose() {
         return txWorldPinpoint.times(txPinpointRobot);
     }
 
@@ -70,5 +75,11 @@ public final class PinpointLocalizer implements Localizer {
             return new PoseVelocity2d(robotVelocity, driver.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS));
         }
         return new PoseVelocity2d(new Vector2d(0, 0), 0);
+    }
+
+    public void printInfo() {
+        telemetry.addLine("PINPOINT");
+        telemetry.addData("position (in)", MathUtils.format2(pose().position.x) + ", " + MathUtils.format2(pose().position.y));
+        telemetry.addData("heading (deg)", MathUtils.format2(Math.toDegrees(pose().heading.toDouble())));
     }
 }

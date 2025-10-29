@@ -15,17 +15,20 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 @Config
 public class Shooter extends Subsystem {
 
-    public static class MotorParams {
+    public static class ShootingTuning {
         public double maxMotorSpeedUpTime = 5;
         public double shooterKp = 0.01, shooterKi = 0, shooterKd = 0, shooterKf = 0;
         public double velocityErrorThreshold = Math.toRadians(10), hoodErrorThreshold = 0.01;
     }
-    public static MotorParams mp = new MotorParams();
+    public static ShootingTuning st = new ShootingTuning();
+    public static double passiveDPS = 60, passivePower = 0.3;
+    public static double manualHoodIncrementPercent = 0.02;
     public static double hoodDownPosition = 0.99, hoodUpPosition = 0.4;
     public static QuadraticEquation hoodEquation = new QuadraticEquation(1, 1, 1);
     public enum State {
         OFF,
-        TRACK_SPEED
+        TRACK_PASSIVE_SPEED,
+        TRACK_SHOOTER_SPEED
     }
     private State state;
     private DcMotorEx motor;
@@ -34,10 +37,10 @@ public class Shooter extends Subsystem {
     private double targetVelocity, targetHoodPos;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        speedPidf = new PIDFController(mp.shooterKp, mp.shooterKi, mp.shooterKd, mp.shooterKf);
+        speedPidf = new PIDFController(st.shooterKp, st.shooterKi, st.shooterKd, st.shooterKf);
         targetVelocity = 0;
 
-        setState(State.TRACK_SPEED);
+        setState(State.TRACK_PASSIVE_SPEED);
     }
 
     @Override
@@ -49,17 +52,33 @@ public class Shooter extends Subsystem {
 
     @Override
     public void updateState() {
+        double currentVelocity = motor.getVelocity(AngleUnit.RADIANS);
         switch (state) {
             case OFF:
                 break;
-            case TRACK_SPEED:
-                if (keybinds.check(Keybinds.D1Trigger.SHOOT) && robot != null) {
-                    robot.shootBallCommand().schedule();
+            case TRACK_PASSIVE_SPEED:
+                if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL)) {
+                    setState(State.TRACK_SHOOTER_SPEED);
+                    break;
                 }
-                double velocity = motor.getVelocity(AngleUnit.RADIANS);
-                double power = speedPidf.update(velocity);
-                motor.setPower(power);
-                targetHoodPos = hoodEquation.calculate(velocity);
+
+//                double passivePower = speedPidf.update(currentVelocity);
+//                motor.setPower(passivePower);
+                motor.setPower(passivePower);
+                break;
+            case TRACK_SHOOTER_SPEED:
+                if (keybinds.check(Keybinds.D1Trigger.SHOOT) && robot != null)
+                    robot.shootBallCommand().schedule();
+
+//                double shootingPower = speedPidf.update(currentVelocity);
+//                motor.setPower(shootingPower);
+//                targetHoodPos = hoodEquation.calculate(currentVelocity);
+//                setServoPositions(targetHoodPos);
+                motor.setPower(0.99);
+                if (keybinds.g1.isDpadUpPressed())
+                    targetHoodPos += manualHoodIncrementPercent;
+                else if (keybinds.g1.isDpadDownPressed())
+                    targetHoodPos -= manualHoodIncrementPercent;
                 setServoPositions(targetHoodPos);
                 break;
         }
@@ -73,7 +92,11 @@ public class Shooter extends Subsystem {
             motor.setPower(0);
             setServoPositions(hoodDownPosition);
         }
-        else if (state == State.TRACK_SPEED) {
+        else if (state == State.TRACK_PASSIVE_SPEED) {
+            speedPidf.reset();
+            speedPidf.setTarget(passiveDPS);
+        }
+        else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
             speedPidf.setTarget(targetVelocity);
         }
@@ -83,7 +106,7 @@ public class Shooter extends Subsystem {
         double currentVelocity = motor.getVelocity(AngleUnit.RADIANS);
         double velocityError = Math.abs(currentVelocity - targetVelocity);
         double hoodError = Math.abs(getAvgServoPosition() - targetHoodPos);
-        return velocityError < mp.velocityErrorThreshold && hoodError < mp.hoodErrorThreshold;
+        return velocityError < st.velocityErrorThreshold && hoodError < st.hoodErrorThreshold;
     }
     public double getAvgServoPosition() {
         return (leftServo.getPosition() + rightServo.getPosition()) / 2.;

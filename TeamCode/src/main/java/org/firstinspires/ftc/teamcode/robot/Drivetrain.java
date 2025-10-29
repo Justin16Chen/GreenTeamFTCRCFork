@@ -21,16 +21,16 @@ public class Drivetrain extends Subsystem {
 
     @Override
     public void updateState() {
-        setDrivePowers(-g1.getLeftStickX(), -g1.getLeftStickY(), -g1.getRightStickX());
+        setDrivePowers(g1.getLeftStickX(), -g1.getLeftStickY(), -g1.getRightStickX());
     }
 
     @Override
     public void printInfo() {
-
+        telemetry.addLine("===DRIVETRAIN===");
+        printMotorPowers();
     }
 
     public void setDrivePowers(double lateralPower, double axialPower, double headingPower) {
-        lateralPower *= -1; // because we define left as positive lateral (it is how it is defined in the field coordinate space)
         double addValue = Math.round((100 * (axialPower * Math.abs(axialPower) + lateralPower * Math.abs(lateralPower)))) / 100.;
         double subtractValue = Math.round((100 * (axialPower * Math.abs(axialPower) - lateralPower * Math.abs(lateralPower)))) / 100.;
         setMotorPowers((addValue - headingPower), (subtractValue + headingPower), (subtractValue - headingPower), (addValue + headingPower));

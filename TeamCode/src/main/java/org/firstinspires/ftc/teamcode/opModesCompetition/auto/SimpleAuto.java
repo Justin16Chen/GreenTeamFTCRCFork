@@ -3,10 +3,8 @@ package org.firstinspires.ftc.teamcode.opModesCompetition.auto;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.DriveParams;
@@ -14,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.pidDrive.DrivePath;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.Tolerance;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.Waypoint;
 
+@Autonomous(name="Simple Drive Auto")
 public class SimpleAuto extends ParentOpMode {
     public static Pose2d shootPose = new Pose2d(24, 0, 0);
     public static Tolerance shootTolerance = new Tolerance(2, 0.5);
@@ -31,7 +30,7 @@ public class SimpleAuto extends ParentOpMode {
     public void start() {
         Waypoint shootWaypoint = new Waypoint(shootPose, shootTolerance, shootDriveParams);
         new SequentialCommandGroup(
-                new DrivePath(robot.drivetrain, robot.odo, shootWaypoint),
+                new DrivePath(robot.drivetrain, robot.pinpoint, shootWaypoint),
                 robot.shootBallCommand()
 
         ).schedule();
