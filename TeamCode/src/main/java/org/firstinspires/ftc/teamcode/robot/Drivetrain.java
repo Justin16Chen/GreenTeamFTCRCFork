@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 public class Drivetrain extends Subsystem {
@@ -43,6 +44,6 @@ public class Drivetrain extends Subsystem {
     }
 
     public void printMotorPowers() {
-        telemetry.addData("dt powers (FL FR BL BR)", fl.getPower() + ", " + fr.getPower() + ", " + bl.getPower() + ", " + br.getPower());
+        telemetry.addData("dt powers (FL FR BL BR)", MathUtils.format3(fl.getPower()) + ", " + MathUtils.format3(fr.getPower()) + ", " + MathUtils.format3(bl.getPower()) + ", " + MathUtils.format3(br.getPower()));
     }
 }

@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 public class Park extends Subsystem {
@@ -32,8 +33,8 @@ public class Park extends Subsystem {
     @Override
     public void printInfo() {
         telemetry.addLine("===PARK===");
-        telemetry.addData("left servo pos", leftServo.getPosition());
-        telemetry.addData("right servo pos", rightServo.getPosition());
+        telemetry.addData("left servo pos", MathUtils.format3(leftServo.getPosition()));
+        telemetry.addData("right servo pos", MathUtils.format3(rightServo.getPosition()));
     }
     public void setServoPositions(double position) {
         leftServo.setPosition(position);

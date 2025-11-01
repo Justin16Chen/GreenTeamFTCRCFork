@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
@@ -40,6 +41,8 @@ public class Flipper extends Subsystem {
 
     @Override
     public void printInfo() {
-
+        telemetry.addLine("===FLIPPER===");
+        telemetry.addData("state", state);
+        telemetry.addData("target servo position", MathUtils.format3(servo.getPosition()));
     }
 }

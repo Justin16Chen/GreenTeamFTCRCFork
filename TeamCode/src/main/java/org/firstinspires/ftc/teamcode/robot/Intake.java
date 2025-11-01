@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
@@ -106,7 +107,7 @@ public class Intake extends Subsystem {
         telemetry.addLine("===INTAKE===");
         telemetry.addData("state", state);
         telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE));
-        telemetry.addData("motor power", motor.getPower());
+        telemetry.addData("motor power", MathUtils.format3(motor.getPower()));
         telemetry.addData("num balls", numBalls);
     }
 }

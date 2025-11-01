@@ -21,6 +21,12 @@ public class MathUtils {
             total.append(format2(num)).append(", ");
         return total.substring(0, total.length() - 2);
     }
+    public static String format3(double[] nums) {
+        StringBuilder total = new StringBuilder();
+        for (double num : nums)
+            total.append(format3(num)).append(", ");
+        return total.substring(0, total.length() - 2);
+    }
 
     public static double lerp(double a, double b, double t) {
         return a + (b - a) * t;

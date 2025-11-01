@@ -121,8 +121,8 @@ public class Shooter extends Subsystem {
     public void printInfo() {
         telemetry.addLine("===SHOOTER===");
         telemetry.addData("state", state);
-        telemetry.addData("motor power", motor.getPower());
-        telemetry.addData("left servo position", leftServo.getPosition());
-        telemetry.addData("right servo position", rightServo.getPosition());
+        telemetry.addData("motor power", MathUtils.format3(motor.getPower()));
+        telemetry.addData("left servo position", MathUtils.format3(leftServo.getPosition()));
+        telemetry.addData("right servo position", MathUtils.format3(rightServo.getPosition()));
     }
 }

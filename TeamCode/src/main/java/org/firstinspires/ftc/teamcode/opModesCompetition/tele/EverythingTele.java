@@ -30,6 +30,7 @@ public class EverythingTele extends ParentOpMode {
 
         robot.update();
 
+        telemetry.addData("alliance", robot.alliance);
         telemetry.addLine("=====SUBSYSTEMS=====");
         for (Subsystem subsystem : robot.subsystems) {
             subsystem.printInfo();

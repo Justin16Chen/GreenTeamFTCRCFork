@@ -68,10 +68,10 @@ public class BallColorSensor extends Sensor {
     }
 
     public void printRGB() {
-        telemetry.addData("RGB", MathUtils.format2(rgbb));
+        telemetry.addData("RGB", MathUtils.format3(rgbb));
     }
     public void printOldRGB() {
-        telemetry.addData("old RGB", MathUtils.format2(oldRgbb));
+        telemetry.addData("old RGB", MathUtils.format3(oldRgbb));
 
     }
 
