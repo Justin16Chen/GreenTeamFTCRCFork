@@ -4,8 +4,6 @@ import java.text.DecimalFormat;
 
 // helps for concise, easy printing to telemetry
 public class MathUtils {
-    public static DecimalFormat df = new DecimalFormat("#.##");
-
     public static String format2(Number num) {
         return format(num, 2);
     }
@@ -18,9 +16,9 @@ public class MathUtils {
         return customDf.format(num);
     }
     public static String format2(double[] nums) {
-        String total = "";
+        StringBuilder total = new StringBuilder();
         for (double num : nums)
-            total += format2(num) + ", ";
+            total.append(format2(num)).append(", ");
         return total.substring(0, total.length() - 2);
     }
 

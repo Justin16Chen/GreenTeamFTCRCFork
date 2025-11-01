@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
@@ -14,14 +16,13 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 import java.util.ArrayList;
 
+@Config
 public class Robot {
+    public static Alliance defaultAlliance = Alliance.BLUE;
 
-    private final Telemetry telemetry;
-    private GamepadTracker g1, g2;
-    private Keybinds keybinds;
+    public final Alliance alliance;
     public final ArrayList<Subsystem> subsystems;
     public final ArrayList<Sensor> sensors;
-    public final Camera camera;
     public final BallColorSensor[] colorSensors;
     public final Drivetrain drivetrain;
     public final PinpointLocalizer pinpoint;
@@ -30,21 +31,22 @@ public class Robot {
     public final Shooter shooter;
     public final Park park;
     public Robot(Hardware hardware, Telemetry telemetry) {
-        this.telemetry = telemetry;
+        this(hardware, telemetry, defaultAlliance);
+    }
+    public Robot(Hardware hardware, Telemetry telemetry, Alliance alliance) {
+        this.alliance = alliance;
         subsystems = new ArrayList<>();
         sensors = new ArrayList<>();
 
         pinpoint = new PinpointLocalizer(hardware.hardwareMap, new Pose2d(0, 0, 0), telemetry);
-        camera = new Camera(hardware, telemetry);
-        subsystems.add(camera);
         drivetrain = new Drivetrain(hardware, telemetry);
         subsystems.add(drivetrain);
         intake = new Intake(hardware, telemetry);
         subsystems.add(intake);
-        flipper = new Flipper(hardware, telemetry);
-        subsystems.add(flipper);
         shooter = new Shooter(hardware, telemetry);
         subsystems.add(shooter);
+        flipper = new Flipper(hardware, telemetry);
+        subsystems.add(flipper);
         park = new Park(hardware, telemetry);
         subsystems.add(park);
 
@@ -67,9 +69,6 @@ public class Robot {
     }
 
     public void setInputInfo(GamepadTracker g1, GamepadTracker g2, Keybinds keybinds) {
-        this.g1 = g1;
-        this.g2 = g2;
-
         for (Subsystem subsystem : subsystems) {
             subsystem.setInputInfo(keybinds);
             subsystem.setRobot(this);

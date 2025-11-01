@@ -9,45 +9,32 @@ import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.BallColorSensor;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
+import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @TeleOp(name="Everything Tele", group = "Competition")
-public class EverythingTele extends OpMode {
-    private GamepadTracker g1, g2;
+public class EverythingTele extends ParentOpMode {
     private Robot robot;
 
     @Override
-    public void init() {
-
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        telemetry.setMsTransmissionInterval(20);
-
-        Hardware hardware = new Hardware(hardwareMap);
-        g1 = new GamepadTracker(gamepad1);
-        g2 = new GamepadTracker(gamepad2);
-
+    public void initiation() {
         robot = new Robot(hardware, telemetry);
         robot.declareHardware();
         robot.setInputInfo(g1, g2, new TeleKeybinds(g1, g2));
     }
 
     @Override
-    public void loop() {
+    public void updateLoop() {
         g1.update();
         g2.update();
 
         robot.update();
 
         telemetry.addLine("=====SUBSYSTEMS=====");
-        telemetry.addLine();
-        robot.drivetrain.printInfo();
-        telemetry.addLine();
-        robot.intake.printInfo();
-        telemetry.addLine();
-        robot.flipper.printInfo();
-        telemetry.addLine();
-        robot.shooter.printInfo();
-        telemetry.addLine();
-        robot.park.printInfo();
+        for (Subsystem subsystem : robot.subsystems) {
+            subsystem.printInfo();
+            telemetry.addLine();
+        }
 
         telemetry.addLine("=====SENSORS=====");
         robot.pinpoint.printInfo();
@@ -56,12 +43,5 @@ public class EverythingTele extends OpMode {
             colorSensor.printInfo();
 
         telemetry.update();
-    }
-
-    private void printControls() {
-        telemetry.addData("lx", gamepad1.left_stick_x);
-        telemetry.addData("ly", -gamepad1.left_stick_y);
-        telemetry.addData("turn", -gamepad1.right_stick_x);
-        telemetry.addData("toggle intake", "right bumper");
     }
 }
