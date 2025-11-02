@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.BallColorSensor;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
@@ -19,7 +20,7 @@ public class EverythingTele extends ParentOpMode {
 
     @Override
     public void initiation() {
-        robot = new Robot(hardware, telemetry);
+        robot = new Robot(hardware, telemetry, OpmodeType.TELE);
         robot.declareHardware();
         robot.setInputInfo(new TeleKeybinds(g1, g2));
         CommandScheduler.getInstance().reset();

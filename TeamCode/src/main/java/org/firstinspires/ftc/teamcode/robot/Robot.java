@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Sensor;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
@@ -21,6 +22,7 @@ public class Robot {
     public static Alliance defaultAlliance = Alliance.BLUE;
 
     public final Alliance alliance;
+    public final OpmodeType opmodeType;
     public final ArrayList<Subsystem> subsystems;
     public final ArrayList<Sensor> sensors;
     public final BallColorSensor[] colorSensors;
@@ -30,10 +32,11 @@ public class Robot {
     public final Flipper flipper;
     public final Shooter shooter;
     public final Park park;
-    public Robot(Hardware hardware, Telemetry telemetry) {
-        this(hardware, telemetry, defaultAlliance);
+    public Robot(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType) {
+        this(hardware, telemetry, opmodeType, defaultAlliance);
     }
-    public Robot(Hardware hardware, Telemetry telemetry, Alliance alliance) {
+    public Robot(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType, Alliance alliance) {
+        this.opmodeType = opmodeType;
         this.alliance = alliance;
         subsystems = new ArrayList<>();
         sensors = new ArrayList<>();

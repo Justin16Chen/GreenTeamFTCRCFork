@@ -131,15 +131,23 @@ public class GamepadTracker {
 
     // joystick getters
     public double getLeftStickX() {
+        if (gamepad == null)
+            return 0;
         return gamepad.left_stick_x;
     }
     public double getLeftStickY() {
+        if (gamepad == null)
+            return 0;
         return gamepad.left_stick_y;
     }
     public double getRightStickX() {
+        if (gamepad == null)
+            return 0;
         return gamepad.right_stick_x;
     }
     public double getRightStickY() {
+        if (gamepad == null)
+            return 0;
         return gamepad.right_stick_y;
     }
 }

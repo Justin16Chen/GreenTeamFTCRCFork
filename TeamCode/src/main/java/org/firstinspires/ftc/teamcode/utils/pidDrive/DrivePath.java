@@ -7,7 +7,9 @@ import com.arcrobotics.ftclib.geometry.Vector2d;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.robot.Drivetrain;
+import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
 import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 
@@ -18,6 +20,7 @@ import java.util.Set;
 public class DrivePath implements Command {
     private final Drivetrain drivetrain;
     private final PinpointLocalizer odo;
+    private final Telemetry telemetry;
     private final ArrayList<Waypoint> waypoints;
     private int curWaypointIndex; // the waypoint the drivetrain is currently trying to go to
     private PIDFController totalDistancePID, waypointDistancePID, headingPID;
@@ -25,8 +28,12 @@ public class DrivePath implements Command {
     private boolean reachedDestination;
 
     public DrivePath(Drivetrain drivetrain, PinpointLocalizer odo, Waypoint destination) {
+        this(drivetrain, odo, destination, null);
+    }
+    public DrivePath(Drivetrain drivetrain, PinpointLocalizer odo, Waypoint destination, Telemetry telemetry) {
         this.drivetrain = drivetrain;
         this.odo = odo;
+        this.telemetry = telemetry;
 
         waypoints = new ArrayList<>();
         waypoints.add(destination);
@@ -67,7 +74,7 @@ public class DrivePath implements Command {
         double rotatedXFromRobot = xFromRobot * Math.cos(-headingRad) - yFromRobot * Math.sin(-headingRad);
         double rotatedYFromRobot = xFromRobot * Math.sin(-headingRad) + yFromRobot * Math.cos(-headingRad);
         // translating target back to absolute; this returns the direction to the next waypoint IN THE ROBOT'S COORDINATE PLANE
-        Vector2d targetDir = new Vector2d(rotatedXFromRobot, rotatedYFromRobot);
+        Vector2d targetDir = new Vector2d(rotatedYFromRobot, rotatedXFromRobot);
         double targetDirMag = Math.sqrt(Math.pow(targetDir.getX(), 2) + Math.pow(targetDir.getY(), 2));
         return targetDir.div(targetDirMag); // normalize
     }
@@ -112,9 +119,10 @@ public class DrivePath implements Command {
         // in tolerance
         if (inWaypointTolerance || (getCurParams().hasMaxTime() && waypointTimer.seconds() >= getCurParams().maxTime)) {
             curWaypointIndex++;
-            if (curWaypointIndex >= waypoints.size())
+            if (curWaypointIndex >= waypoints.size()) {
+                reachedDestination = true;
                 return;
-            else {
+            } else {
                 // set new PID targets
                 resetToNewWaypoint();
 
@@ -143,6 +151,15 @@ public class DrivePath implements Command {
         headingPower = headingSign * Range.clip(Math.abs(headingPower), getCurParams().minHeadingSpeed, getCurParams().maxHeadingSpeed);
 
         drivetrain.setDrivePowers(lateralPower, axialPower, headingPower);
+
+        if (telemetry != null) {
+            telemetry.addData("waypoint errors", MathUtils.format3(xWaypointError) + ", " + MathUtils.format3(yWaypointError) + ", " + MathUtils.format3(headingWaypointError));
+            telemetry.addData("in position tolerance", inPositionTolerance);
+            telemetry.addData("in heading tolerance", inHeadingTolerance);
+            telemetry.addLine();
+            telemetry.addData("speed", MathUtils.format3(speed));
+            telemetry.addData("powers (lat, ax, heading)", MathUtils.format3(lateralPower) + ", " + MathUtils.format3(axialPower) + ", " + MathUtils.format2(headingPower));
+        }
     }
 
     @Override
