@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.robot.Flipper;
-import org.firstinspires.ftc.teamcode.robot.Intake;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
@@ -16,11 +15,12 @@ import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 @TeleOp(name="Shooter Test", group = "Testing")
 @Config
 public class ShooterTest extends ParentOpMode {
+    public static boolean powerLeft = true, powerRight = true;
     public static double joystickChangeIncrement = 0.01;
     private DcMotorEx intakeMotor;
     private ServoImplEx flipperServo;
     private boolean flipperBlocking;
-    private DcMotorEx shooterMotor;
+    private DcMotorEx leftShooterMotor, rightShooterMotor;
     private ServoImplEx leftServo, rightServo;
     private double targetServoPosition;
 
@@ -32,7 +32,8 @@ public class ShooterTest extends ParentOpMode {
         intakeMotor = hardware.getIntakeMotor();
         flipperServo = hardware.getFlipperServo();
 
-        shooterMotor = hardware.getShooterMotor();
+        leftShooterMotor = hardware.getLeftShooterMotor();
+        rightShooterMotor = hardware.getRightShooterMotor();
         leftServo = hardware.getLeftHoodServo();
         rightServo = hardware.getRightHoodServo();
         targetServoPosition = 0.5;
@@ -48,8 +49,10 @@ public class ShooterTest extends ParentOpMode {
     @Override
     public void updateLoop() {
 
-        intakePower -= g1.getRightStickY();
+        intakePower -= g1.getRightStickY() * joystickChangeIncrement;
+        intakePower = Range.clip(intakePower, -0.99, 0.99);
         intakeMotor.setPower(intakePower);
+
         if (g1.isLBClicked()) {
             flipperBlocking = !flipperBlocking;
             flipperServo.setPosition(flipperBlocking ? Flipper.closePosition : Flipper.openPosition);
@@ -68,14 +71,13 @@ public class ShooterTest extends ParentOpMode {
         }
 
         // joystick increments
-        if (!g1.isDpadUpPressed() && !g1.isDpadDownPressed())
-            shooterPower -= g1.getLeftStickY() * joystickChangeIncrement;
+        shooterPower -= g1.getLeftStickY() * joystickChangeIncrement;
 
         // reset
         if (g1.isAClicked())
             shooterPower = 0;
         shooterPower = Range.clip(shooterPower, -0.99, 0.99);
-        shooterMotor.setPower(shooterPower);
+        setShooterMotorPower(shooterPower);
 
         g1.update();
 
@@ -95,13 +97,20 @@ public class ShooterTest extends ParentOpMode {
         telemetry.addLine();
         telemetry.addLine("===SHOOTER MOTOR===");
         telemetry.addData("desired shooter power", shooterPower);
-        telemetry.addData("actual shooter power", shooterMotor.getPower());
-        telemetry.addData("motor deg/sec", MathUtils.format3(shooterMotor.getVelocity(AngleUnit.DEGREES)));
+        telemetry.addData("actual shooter power (l, r)", MathUtils.format3(leftShooterMotor.getPower()) + ", " + MathUtils.format3(rightShooterMotor.getPower()));
+        telemetry.addData("motor deg/sec", MathUtils.format3(leftShooterMotor.getVelocity(AngleUnit.DEGREES)));
         telemetry.addLine();
         telemetry.addLine("===INTAKE & TRANSFER===");
         telemetry.addData("desired intake motor power", MathUtils.format3(intakePower));
         telemetry.addData("actual intake motor power", MathUtils.format3(intakeMotor.getPower()));
         telemetry.addData("flipper position", flipperServo.getPosition());
         telemetry.update();
+    }
+
+    private void setShooterMotorPower(double power) {
+        if (powerLeft)
+            leftShooterMotor.setPower(power);
+        if (powerRight)
+            rightShooterMotor.setPower(power);
     }
 }

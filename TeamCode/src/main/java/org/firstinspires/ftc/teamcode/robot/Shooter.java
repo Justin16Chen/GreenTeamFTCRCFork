@@ -17,10 +17,11 @@ public class Shooter extends Subsystem {
 
     public static class ShootingTuning {
         public double maxMotorSpeedUpTime = 5;
-        public double shooterKp = 0.01, shooterKi = 0, shooterKd = 0, shooterKf = 0;
+        public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.03;
         public double velocityErrorThreshold = Math.toRadians(10), hoodErrorThreshold = 0.01;
+        public double nearZoneTargetDPS = 200;
     }
-    public static ShootingTuning st = new ShootingTuning();
+    public static ShootingTuning shooterParams = new ShootingTuning();
     public static double passiveDPS = 60, passivePower = 0.3;
     public static double manualHoodIncrementPercent = 0.02;
     public static double hoodDownPosition = 0.99, hoodUpPosition = 0.4;
@@ -31,28 +32,27 @@ public class Shooter extends Subsystem {
         TRACK_SHOOTER_SPEED
     }
     private State state;
-    private DcMotorEx motor;
+    private DcMotorEx leftMotor, rightMotor;
     private ServoImplEx leftServo, rightServo;
     private final PIDFController speedPidf; // input error between current speed and target speed, output desired power
-    private double targetVelocity, targetHoodPos;
+    private double targetHoodPos, pidMotorPower;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        speedPidf = new PIDFController(st.shooterKp, st.shooterKi, st.shooterKd, st.shooterKf);
-        targetVelocity = 0;
-
+        speedPidf = new PIDFController(shooterParams.shooterKp, shooterParams.shooterKi, shooterParams.shooterKd, shooterParams.shooterKf);
+        speedPidf.setOutputBounds(0, 0.99);
         setState(State.TRACK_PASSIVE_SPEED);
     }
 
     @Override
     public void declareHardware() {
-        motor = hardware.getShooterMotor();
+        leftMotor = hardware.getLeftShooterMotor();
+        rightMotor = hardware.getRightShooterMotor();
         leftServo = hardware.getLeftHoodServo();
         rightServo = hardware.getRightHoodServo();
     }
 
     @Override
     public void updateState() {
-        double currentVelocity = motor.getVelocity(AngleUnit.RADIANS);
         switch (state) {
             case OFF:
                 break;
@@ -62,19 +62,15 @@ public class Shooter extends Subsystem {
                     break;
                 }
 
-//                double passivePower = speedPidf.update(currentVelocity);
-//                motor.setPower(passivePower);
-                motor.setPower(passivePower);
+                setMotorPowers(passivePower);
                 break;
             case TRACK_SHOOTER_SPEED:
                 if (keybinds.check(Keybinds.D1Trigger.SHOOT) && robot != null)
                     robot.shootBallCommand().schedule();
 
-//                double shootingPower = speedPidf.update(currentVelocity);
-//                motor.setPower(shootingPower);
-//                targetHoodPos = hoodEquation.calculate(currentVelocity);
-//                setServoPositions(targetHoodPos);
-                motor.setPower(0.99);
+                pidMotorPower = speedPidf.update(getAvgMotorSpeed());
+                setMotorPowers(pidMotorPower);
+
                 if (keybinds.g1.isDpadUpPressed())
                     targetHoodPos += manualHoodIncrementPercent;
                 else if (keybinds.g1.isDpadDownPressed())
@@ -89,7 +85,7 @@ public class Shooter extends Subsystem {
             return;
         state = newState;
         if (state == State.OFF) {
-            motor.setPower(0);
+            leftMotor.setPower(0);
             setServoPositions(hoodDownPosition);
         }
         else if (state == State.TRACK_PASSIVE_SPEED) {
@@ -98,15 +94,24 @@ public class Shooter extends Subsystem {
         }
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
-            speedPidf.setTarget(targetVelocity);
+            speedPidf.setTarget(shooterParams.nearZoneTargetDPS);
         }
     }
 
-    public boolean isReadyToShoot() {
-        double currentVelocity = motor.getVelocity(AngleUnit.RADIANS);
-        double velocityError = Math.abs(currentVelocity - targetVelocity);
-        double hoodError = Math.abs(getAvgServoPosition() - targetHoodPos);
-        return velocityError < st.velocityErrorThreshold && hoodError < st.hoodErrorThreshold;
+//    public boolean isReadyToShoot() {
+//        double currentVelocity = leftMotor.getVelocity(AngleUnit.RADIANS);
+//        double velocityError = Math.abs(currentVelocity - targetSpeed);
+//        double hoodError = Math.abs(getAvgServoPosition() - targetHoodPos);
+//        return velocityError < shooterParams.velocityErrorThreshold && hoodError < shooterParams.hoodErrorThreshold;
+//    }
+    private void setMotorPowers(double power) {
+        leftMotor.setPower(power);
+        rightMotor.setPower(power);
+    }
+    public double getAvgMotorSpeed() {
+        double leftSpeed = Math.abs(leftMotor.getVelocity(AngleUnit.DEGREES));
+        double rightSpeed = Math.abs(rightMotor.getVelocity(AngleUnit.DEGREES));
+        return leftSpeed + rightSpeed / 2;
     }
     public double getAvgServoPosition() {
         return (leftServo.getPosition() + rightServo.getPosition()) / 2.;
@@ -121,7 +126,15 @@ public class Shooter extends Subsystem {
     public void printInfo() {
         telemetry.addLine("===SHOOTER===");
         telemetry.addData("state", state);
-        telemetry.addData("motor power", MathUtils.format3(motor.getPower()));
+        telemetry.addLine();
+        telemetry.addData("pid motor power", pidMotorPower);
+        telemetry.addData("target speed", shooterParams.nearZoneTargetDPS);
+        telemetry.addData("actual avg speed", MathUtils.format3(getAvgMotorSpeed()));
+        telemetry.addData("left speed", leftMotor.getVelocity(AngleUnit.DEGREES));
+        telemetry.addData("right speed", rightMotor.getVelocity(AngleUnit.DEGREES));
+        telemetry.addLine();
+        telemetry.addData("left motor power", MathUtils.format3(leftMotor.getPower()));
+        telemetry.addData("right motor power", MathUtils.format3(rightMotor.getPower()));
         telemetry.addData("left servo position", MathUtils.format3(leftServo.getPosition()));
         telemetry.addData("right servo position", MathUtils.format3(rightServo.getPosition()));
     }

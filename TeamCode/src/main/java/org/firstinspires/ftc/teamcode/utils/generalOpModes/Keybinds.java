@@ -26,11 +26,6 @@ public abstract class Keybinds {
         gt2Triggers = new HashMap<>();
 
         enterKeybinds(gt1Triggers, gt2Triggers);
-
-        if (D1Trigger.values().length > gt1Triggers.size())
-            throw new IllegalStateException("forgot to instantiate D1 trigger. enum size of " + D1Trigger.values().length + " is greater than " + gt1Triggers.size());
-        if (D2Trigger.values().length > gt2Triggers.size())
-            throw new IllegalStateException("forgot to instantiate D2 trigger. enum size of " + D2Trigger.values().length + " is greater than " + gt2Triggers.size());
     }
 
     protected abstract void enterKeybinds(HashMap<D1Trigger, Predicate<GamepadTracker>> gt1Triggers, HashMap<D2Trigger, Predicate<GamepadTracker>> gt2Triggers);

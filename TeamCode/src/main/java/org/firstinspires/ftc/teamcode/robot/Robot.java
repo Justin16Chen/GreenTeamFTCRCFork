@@ -68,7 +68,7 @@ public class Robot {
             sensor.setRobot(this);
     }
 
-    public void setInputInfo(GamepadTracker g1, GamepadTracker g2, Keybinds keybinds) {
+    public void setInputInfo(Keybinds keybinds) {
         for (Subsystem subsystem : subsystems) {
             subsystem.setInputInfo(keybinds);
             subsystem.setRobot(this);
@@ -96,7 +96,7 @@ public class Robot {
     public SequentialCommandGroup shootBallCommand() {
         return new SequentialCommandGroup(
                 new InstantCommand(() -> intake.setState(Intake.State.OFF)),
-//                new WaitUntilCommand(shooter::isReadyToShoot, Shooter.st.maxMotorSpeedUpTime),
+//                new WaitUntilCommand(shooter::isReadyToShoot, Shooter.shooterParams.maxMotorSpeedUpTime),
                 new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
                 new WaitCommand(Flipper.rotationTimeMs),
                 new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),

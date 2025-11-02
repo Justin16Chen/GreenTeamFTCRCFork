@@ -63,7 +63,7 @@ public class PIDFController {
     public double update(double value) {
         value = Range.clip(value, lowerInputBound, higherInputBound);
 
-        double error = value - target;
+        double error = target - value;
 
         return updateWithError(error);
     }

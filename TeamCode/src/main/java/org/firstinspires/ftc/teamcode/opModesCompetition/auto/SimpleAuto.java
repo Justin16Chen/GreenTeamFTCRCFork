@@ -5,7 +5,9 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.opModesCompetition.tele.TeleKeybinds;
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.DriveParams;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.DrivePath;
@@ -20,10 +22,12 @@ public class SimpleAuto extends ParentOpMode {
     private Robot robot;
     @Override
     public void initiation() {
+        g1 = new GamepadTracker(null);
+        g2 = new GamepadTracker(null);
         CommandScheduler.getInstance().reset();
         robot = new Robot(hardware, telemetry);
-        robot.setInputInfo(g1, g2, new EmptyAutoKeybinds());
-
+        robot.declareHardware();
+        robot.setInputInfo(new TeleKeybinds(g1, g2));
     }
 
     @Override

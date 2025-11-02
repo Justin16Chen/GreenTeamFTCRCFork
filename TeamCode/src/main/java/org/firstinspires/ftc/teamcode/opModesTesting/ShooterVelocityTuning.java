@@ -19,7 +19,7 @@ public class ShooterVelocityTuning extends ParentOpMode {
     private DcMotorEx intakeMotor;
     private ServoImplEx flipperServo;
     private boolean flipperBlocking;
-    private DcMotorEx shooterMotor;
+    private DcMotorEx leftShooterMotor, rightShooterMotor;
     private ServoImplEx leftServo, rightServo;
     private double targetServoPosition;
 
@@ -30,7 +30,8 @@ public class ShooterVelocityTuning extends ParentOpMode {
         intakeMotor = hardware.getIntakeMotor();
         flipperServo = hardware.getFlipperServo();
 
-        shooterMotor = hardware.getShooterMotor();
+        leftShooterMotor = hardware.getLeftShooterMotor();
+        rightShooterMotor = hardware.getRightShooterMotor();
         leftServo = hardware.getLeftHoodServo();
         rightServo = hardware.getRightHoodServo();
         targetServoPosition = 0.5;
@@ -83,9 +84,8 @@ public class ShooterVelocityTuning extends ParentOpMode {
         if (g1.isAClicked())
             power = 0;
         power = Range.clip(power, -0.99, 0.99);
-        shooterMotor.setPower(power);
+        setShooterPower(power);
 
-//        shooterMotor.setVelocity(power, AngleUnit.DEGREES);
         g1.update();
 
         telemetry.addLine("===HOOD SERVOS===");
@@ -106,7 +106,13 @@ public class ShooterVelocityTuning extends ParentOpMode {
         telemetry.addData("reset power", "a");
 
         telemetry.addData("desired speed (deg/sec)", power);
-        telemetry.addData("motor power", shooterMotor.getPower());
+        telemetry.addData("motor power", leftShooterMotor.getPower());
         telemetry.update();
     }
+
+    private void setShooterPower(double power) {
+        leftShooterMotor.setPower(power);
+        rightShooterMotor.setPower(power);
+    }
+
 }

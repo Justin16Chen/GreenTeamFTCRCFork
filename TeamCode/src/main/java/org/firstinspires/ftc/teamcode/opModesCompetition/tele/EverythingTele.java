@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opModesCompetition.tele;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -20,15 +21,15 @@ public class EverythingTele extends ParentOpMode {
     public void initiation() {
         robot = new Robot(hardware, telemetry);
         robot.declareHardware();
-        robot.setInputInfo(g1, g2, new TeleKeybinds(g1, g2));
+        robot.setInputInfo(new TeleKeybinds(g1, g2));
+        CommandScheduler.getInstance().reset();
     }
 
     @Override
     public void updateLoop() {
-        g1.update();
-        g2.update();
 
         robot.update();
+        CommandScheduler.getInstance().run();
 
         telemetry.addData("alliance", robot.alliance);
         telemetry.addLine("=====SUBSYSTEMS=====");

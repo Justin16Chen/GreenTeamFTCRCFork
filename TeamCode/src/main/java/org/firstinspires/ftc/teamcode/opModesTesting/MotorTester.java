@@ -8,16 +8,20 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+
+import java.util.Arrays;
 
 @TeleOp(name="Motor Test", group = "Testing")
 @Config
 public class MotorTester extends OpMode {
-    public static String motorConfigName = "intake";
+    public static String[] motorConfigNames = { Hardware.intakeName, Hardware.shooterLeftName, Hardware.shooterRightName };
     public static double increment = 0.1;
     private GamepadTracker g1;
     private DcMotorEx motor1;
     private double motorPower;
+    private int curMotorIndex;
 
     @Override
     public void init() {
@@ -25,8 +29,31 @@ public class MotorTester extends OpMode {
         telemetry.setMsTransmissionInterval(20);
         g1 = new GamepadTracker(gamepad1);
 
-        motor1 = hardwareMap.get(DcMotorEx.class, motorConfigName);
+        motor1 = hardwareMap.get(DcMotorEx.class, motorConfigNames[curMotorIndex]);
         motor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    @Override
+    public void init_loop() {
+        g1.update();
+        if (g1.isDpadUpClicked()) {
+            curMotorIndex++;
+            if (curMotorIndex >= motorConfigNames.length)
+                curMotorIndex = motorConfigNames.length - 1;
+            motor1 = hardwareMap.get(DcMotorEx.class, motorConfigNames[curMotorIndex]);
+            motor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+        else if (g1.isDpadDownClicked()) {
+            curMotorIndex--;
+            if (curMotorIndex < 0)
+                curMotorIndex = 0;
+            motor1 = hardwareMap.get(DcMotorEx.class, motorConfigNames[curMotorIndex]);
+            motor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+        telemetry.addData("all motor names", Arrays.toString(motorConfigNames));
+        telemetry.addData("cur motor index", curMotorIndex);
+        telemetry.addData("cur motor name", motorConfigNames[curMotorIndex]);
+        telemetry.update();
     }
 
     @Override

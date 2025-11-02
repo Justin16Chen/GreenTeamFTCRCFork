@@ -10,8 +10,6 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 
 // standardizes retrieving from hardware map
 // makes reusing robot components in main tele and other test teles really straightforwards
@@ -24,7 +22,7 @@ public class Hardware {
     public static double pinpointXOffset = 5.562, pinpointYOffset = -0.05;
     public static String frontLeftName = "FL", frontRightName = "FR", backLeftName = "BL", backRightName = "BR";
     public static boolean reverseFrontLeft = true, reverseFrontRight = false, reverseBackLeft = true, reverseBackRight = false;
-    public static String intakeName = "intake", shooterName = "shooter";
+    public static String intakeName = "intake", shooterLeftName = "leftShooter", shooterRightName = "rightShooter";
     public static String leftHoodServoName = "leftHoodServo", rightHoodServoName = "rightHoodServo";
     public static int leftHoodServoDownPWM = 550, leftHoodServoUpPWM = 2400, rightHoodServoDownPWM = 2400, rightHoodServoUpPWM = 550;
     public static String flipperServoName = "flipperServo";
@@ -74,9 +72,15 @@ public class Hardware {
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         return motor;
     }
-    public DcMotorEx getShooterMotor() {
-        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, shooterName);
+    public DcMotorEx getLeftShooterMotor() {
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, shooterLeftName);
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        return motor;
+    }
+    public DcMotorEx getRightShooterMotor() {
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, shooterRightName);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor.setDirection(DcMotorSimple.Direction.REVERSE);
         return motor;
     }
 //    public CRServo getLeftHoodServo() {
