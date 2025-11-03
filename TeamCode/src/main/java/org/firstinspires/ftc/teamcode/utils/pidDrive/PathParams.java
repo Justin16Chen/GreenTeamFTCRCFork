@@ -2,8 +2,10 @@ package org.firstinspires.ftc.teamcode.utils.pidDrive;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import java.util.Arrays;
+
 @Config
-public class DriveParams {
+public class PathParams {
     private static final double noMaxTime = -1;
 
     public static double defaultSpeedKp = 0.05, defaultSpeedKi = 0.001, defaultSpeedKd = 0.004;
@@ -19,10 +21,29 @@ public class DriveParams {
 
     public double speedKp, speedKi, speedKd, headingKp, headingKi, headingKd;
 
-    public DriveParams() {
+    public PathParams() {
         this(defaultSpeedKp, defaultSpeedKi, defaultSpeedKd, defaultHeadingKp, defaultHeadingKi, defaultHeadingKd);
     }
-    public DriveParams(double speedKp, double speedKi, double speedKd, double headingKp, double headingKi, double headingKd) {
+    public PathParams(double[] pidCoefficients) {
+        if (pidCoefficients.length != 6)
+            throw new IllegalArgumentException("must pass in 6 PID coefficients. only passed in " + pidCoefficients.length + ": " + Arrays.toString(pidCoefficients));
+        this.speedKp = pidCoefficients[0];
+        this.speedKi = pidCoefficients[1];
+        this.speedKd = pidCoefficients[2];
+        this.headingKp = pidCoefficients[3];
+        this.headingKi = pidCoefficients[4];
+        this.headingKd = pidCoefficients[5];
+
+        maxTime = Double.MAX_VALUE;
+        minSpeed = 0;
+        maxSpeed = Double.MAX_VALUE;
+        minHeadingSpeed = 0;
+        maxHeadingSpeed = Double.MAX_VALUE;
+        lateralWeight = defaultLateralWeight;
+        axialWeight = defaultAxialWeight;
+        passPosition = false;
+    }
+    public PathParams(double speedKp, double speedKi, double speedKd, double headingKp, double headingKi, double headingKd) {
         this.speedKp = speedKp;
         this.speedKi = speedKi;
         this.speedKd = speedKd;

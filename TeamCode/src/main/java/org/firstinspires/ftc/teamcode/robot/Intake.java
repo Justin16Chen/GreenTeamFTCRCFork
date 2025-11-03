@@ -6,16 +6,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
-import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Intake extends Subsystem {
-    public static double collectPower = 0.99, feedShooterTime = 0.1, feedShooterPower = 0.5;
+    public static double collectPower = 0.99, passivePower = 0.6, feedShooterPower = 0.99;
 
     public enum State {
-        ON, OFF, FEED_SHOOTER
+        ON, OFF, PASSIVE_INTAKE, FEED_SHOOTER
     }
 
     private State state;
@@ -39,14 +38,14 @@ public class Intake extends Subsystem {
     public void updateState() {
         switch (state) {
             case OFF:
-                if (keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE) && numBalls < 3) {
+                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE) && numBalls < 3) {
                     setState(State.ON);
                     break;
                 }
                 break;
             case ON:
-                if (!keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE)) {
-                    setState(State.OFF);
+                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
+                    setState(numBalls == 3 || numBalls == 0 ? State.OFF : State.PASSIVE_INTAKE);
                     break;
                 }
 
@@ -62,9 +61,14 @@ public class Intake extends Subsystem {
                     }
                 }
                 break;
+            case PASSIVE_INTAKE:
+                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
+                    setState(State.ON);
+                    break;
+                }
+                break;
             case FEED_SHOOTER:
-                if (feedShooterTimer.seconds() > feedShooterTime)
-                    setState(State.OFF);
+
         }
     }
     public void setState(State newState) {
@@ -76,15 +80,20 @@ public class Intake extends Subsystem {
         if (state == State.ON) {
             motor.setPower(collectPower);
             turnOnSensor(numBalls);
+            robot.shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED);
         }
         else if (state == State.OFF) {
             motor.setPower(0);
             turnOffAllSensors();
         }
+        else if (state == State.PASSIVE_INTAKE) {
+            motor.setPower(passivePower);
+            turnOffAllSensors();
+        }
         else if (state == State.FEED_SHOOTER) {
-            feedShooterTimer.reset();
             motor.setPower(feedShooterPower);
-            turnOnSensor(numBalls);
+            turnOffAllSensors();
+
         }
     }
 
@@ -106,7 +115,7 @@ public class Intake extends Subsystem {
     public void printInfo() {
         telemetry.addLine("===INTAKE===");
         telemetry.addData("state", state);
-        telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TURN_ON_INTAKE));
+        telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE));
         telemetry.addData("motor power", MathUtils.format3(motor.getPower()));
         telemetry.addData("num balls", numBalls);
     }

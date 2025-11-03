@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.opModesTesting.ShooterSpeedRecorder;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
@@ -18,13 +19,16 @@ public class Shooter extends Subsystem {
     public static class ShootingTuning {
         public double maxMotorSpeedUpTime = 5;
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.03;
+        public double nearZoneTargetSpeed = 450, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.9;
         public double velocityErrorThreshold = Math.toRadians(10), hoodErrorThreshold = 0.01;
-        public double nearZoneTargetDPS = 200;
+        public long ballShootTime = 2000;
     }
     public static ShootingTuning shooterParams = new ShootingTuning();
+    public static long threeBallShootTimeMs = 2000;
     public static double passiveDPS = 60, passivePower = 0.3;
-    public static double manualHoodIncrementPercent = 0.02;
-    public static double hoodDownPosition = 0.99, hoodUpPosition = 0.4;
+    public static double hoodDefaultPosition = 0.2;
+    public static double hoodManualIncrementPercent = 0.02;
+    public static double hoodDownPosition = 0.89, hoodUpPosition = 0.4;
     public static QuadraticEquation hoodEquation = new QuadraticEquation(1, 1, 1);
     public enum State {
         OFF,
@@ -49,6 +53,8 @@ public class Shooter extends Subsystem {
         rightMotor = hardware.getRightShooterMotor();
         leftServo = hardware.getLeftHoodServo();
         rightServo = hardware.getRightHoodServo();
+        targetHoodPos = hoodDefaultPosition;
+        setServoPositions(targetHoodPos);
     }
 
     @Override
@@ -61,7 +67,6 @@ public class Shooter extends Subsystem {
                     setState(State.TRACK_SHOOTER_SPEED);
                     break;
                 }
-
                 setMotorPowers(passivePower);
                 break;
             case TRACK_SHOOTER_SPEED:
@@ -69,13 +74,25 @@ public class Shooter extends Subsystem {
                     robot.shootBallCommand().schedule();
 
                 pidMotorPower = speedPidf.update(getAvgMotorSpeed());
+                pidMotorPower = MathUtils.lerp(pidMotorPower, shooterParams.nearZoneTargetConstant, shooterParams.nearZoneTargetConstantWeighting);
                 setMotorPowers(pidMotorPower);
 
                 if (keybinds.g1.isDpadUpPressed())
-                    targetHoodPos += manualHoodIncrementPercent;
+                    targetHoodPos += hoodManualIncrementPercent;
                 else if (keybinds.g1.isDpadDownPressed())
-                    targetHoodPos -= manualHoodIncrementPercent;
+                    targetHoodPos -= hoodManualIncrementPercent;
                 setServoPositions(targetHoodPos);
+
+                if (g1.isYClicked()) {
+                    if (ShooterSpeedRecorder.firstShotSpeed == -1)
+                        ShooterSpeedRecorder.firstShotSpeed = getAvgMotorSpeed();
+                    else if (ShooterSpeedRecorder.secondShotSpeed == -1)
+                        ShooterSpeedRecorder.secondShotSpeed = getAvgMotorSpeed();
+                    else if (ShooterSpeedRecorder.thirdShotSpeed == -1)
+                        ShooterSpeedRecorder.thirdShotSpeed = getAvgMotorSpeed();
+
+                }
+
                 break;
         }
     }
@@ -94,7 +111,7 @@ public class Shooter extends Subsystem {
         }
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
-            speedPidf.setTarget(shooterParams.nearZoneTargetDPS);
+            speedPidf.setTarget(shooterParams.nearZoneTargetSpeed);
         }
     }
 
@@ -111,7 +128,7 @@ public class Shooter extends Subsystem {
     public double getAvgMotorSpeed() {
         double leftSpeed = Math.abs(leftMotor.getVelocity(AngleUnit.DEGREES));
         double rightSpeed = Math.abs(rightMotor.getVelocity(AngleUnit.DEGREES));
-        return leftSpeed + rightSpeed / 2;
+        return (leftSpeed + rightSpeed) / 2;
     }
     public double getAvgServoPosition() {
         return (leftServo.getPosition() + rightServo.getPosition()) / 2.;
@@ -128,7 +145,7 @@ public class Shooter extends Subsystem {
         telemetry.addData("state", state);
         telemetry.addLine();
         telemetry.addData("pid motor power", pidMotorPower);
-        telemetry.addData("target speed", shooterParams.nearZoneTargetDPS);
+        telemetry.addData("target speed", shooterParams.nearZoneTargetSpeed);
         telemetry.addData("actual avg speed", MathUtils.format3(getAvgMotorSpeed()));
         telemetry.addData("left speed", leftMotor.getVelocity(AngleUnit.DEGREES));
         telemetry.addData("right speed", rightMotor.getVelocity(AngleUnit.DEGREES));

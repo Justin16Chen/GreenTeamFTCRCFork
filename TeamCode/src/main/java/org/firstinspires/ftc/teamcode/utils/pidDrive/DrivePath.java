@@ -23,7 +23,7 @@ public class DrivePath implements Command {
     private final Telemetry telemetry;
     private final ArrayList<Waypoint> waypoints;
     private int curWaypointIndex; // the waypoint the drivetrain is currently trying to go to
-    private PIDFController totalDistancePID, waypointDistancePID, headingPID;
+    private PIDFController totalDistancePID, waypointDistancePID, headingErrorPID;
     private final ElapsedTime waypointTimer;
     private boolean reachedDestination;
 
@@ -55,7 +55,7 @@ public class DrivePath implements Command {
     private Waypoint getCurWaypoint() {
         return waypoints.get(Math.min(waypoints.size() - 1, curWaypointIndex));
     }
-    private DriveParams getCurParams() {
+    private PathParams getCurParams() {
         return getCurWaypoint().params;
     }
     private double getWaypointDistanceToTarget(int waypointIndex) {
@@ -74,7 +74,7 @@ public class DrivePath implements Command {
         double rotatedXFromRobot = xFromRobot * Math.cos(-headingRad) - yFromRobot * Math.sin(-headingRad);
         double rotatedYFromRobot = xFromRobot * Math.sin(-headingRad) + yFromRobot * Math.cos(-headingRad);
         // translating target back to absolute; this returns the direction to the next waypoint IN THE ROBOT'S COORDINATE PLANE
-        Vector2d targetDir = new Vector2d(rotatedYFromRobot, rotatedXFromRobot);
+        Vector2d targetDir = new Vector2d(-rotatedYFromRobot, rotatedXFromRobot);
         double targetDirMag = Math.sqrt(Math.pow(targetDir.getX(), 2) + Math.pow(targetDir.getY(), 2));
         return targetDir.div(targetDirMag); // normalize
     }
@@ -87,7 +87,7 @@ public class DrivePath implements Command {
     @Override
     public void execute() {
         Pose2d pose = odo.pose();
-        double x = pose.position.x, y = pose.position.y, headingRad = pose.heading.toDouble();
+        double x = pose.position.x, y = pose.position.y, headingRad = MathUtils.correctRad(pose.heading.toDouble()), headingDeg = Math.toDegrees(headingRad);
 
         // finding direction that motor powers should be applied in
         Vector2d targetDir = updateTargetDir(x, y, headingRad);
@@ -95,11 +95,16 @@ public class DrivePath implements Command {
         // note: error is calculated in field's coordinate plane
         double xWaypointError = Math.abs(x - getCurWaypoint().x());
         double yWaypointError = Math.abs(y - getCurWaypoint().y());
-        double headingWaypointError = Math.abs(headingRad - getCurWaypoint().headingRad());
+        double headingWaypointError = headingDeg - getCurWaypoint().headingDeg();
+        // flip heading error if necessary
+        double absHeadingWaypointError = Math.abs(headingWaypointError);
+        boolean flipHeadingDirection = absHeadingWaypointError > 180;
+        if (flipHeadingDirection)
+            headingWaypointError = Math.signum(headingWaypointError) * (360 - absHeadingWaypointError);
 
         // tolerance
         boolean inPositionTolerance = xWaypointError <= getCurWaypoint().tolerance.xTol && yWaypointError <= getCurWaypoint().tolerance.yTol;
-        boolean inHeadingTolerance = headingWaypointError <= getCurWaypoint().tolerance.headingRadTol;
+        boolean inHeadingTolerance = headingWaypointError <= Math.toDegrees(getCurWaypoint().tolerance.headingRadTol);
 
         // pass position
 //        double dot = -1;
@@ -129,6 +134,11 @@ public class DrivePath implements Command {
                 // recalculate new waypoint errors
                 xWaypointError = Math.abs(x - getCurWaypoint().x());
                 yWaypointError = Math.abs(y - getCurWaypoint().y());
+                headingWaypointError = headingDeg - MathUtils.correctDeg(getCurWaypoint().headingDeg());
+                absHeadingWaypointError = Math.abs(headingWaypointError);
+                flipHeadingDirection = absHeadingWaypointError > 180;
+                if (flipHeadingDirection)
+                    headingWaypointError = Math.signum(headingWaypointError) * (360 - absHeadingWaypointError);
             }
         }
 
@@ -146,13 +156,18 @@ public class DrivePath implements Command {
         // calculate directional powers
         double lateralPower = targetDir.getX() * speed * getCurParams().lateralWeight;
         double axialPower = targetDir.getY() * speed * getCurParams().axialWeight;
-        double headingPower = headingPID.update(headingRad);
+        double headingPower = headingErrorPID.update(headingWaypointError);
         double headingSign = Math.signum(headingPower);
         headingPower = headingSign * Range.clip(Math.abs(headingPower), getCurParams().minHeadingSpeed, getCurParams().maxHeadingSpeed);
+        if (flipHeadingDirection)
+            headingPower *= -1;
 
         drivetrain.setDrivePowers(lateralPower, axialPower, headingPower);
 
         if (telemetry != null) {
+            telemetry.addData("current position", MathUtils.format3(x) + " ," + MathUtils.format3(y) + ", " + MathUtils.format3(headingDeg));
+            telemetry.addData("target position", MathUtils.format3(getCurWaypoint().x()) + " ," + MathUtils.format3(getCurWaypoint().y()) + ", " + MathUtils.format3(getCurWaypoint().headingDeg()));
+            telemetry.addData("target dir", MathUtils.format3(targetDir.getX()) + ", " + MathUtils.format3(targetDir.getY()));
             telemetry.addData("waypoint errors", MathUtils.format3(xWaypointError) + ", " + MathUtils.format3(yWaypointError) + ", " + MathUtils.format3(headingWaypointError));
             telemetry.addData("in position tolerance", inPositionTolerance);
             telemetry.addData("in heading tolerance", inHeadingTolerance);
@@ -187,10 +202,10 @@ public class DrivePath implements Command {
         waypointDistancePID.setTarget(0);
         waypointDistancePID.setOutputBounds(0, 1);
 
-        headingPID = new PIDFController(getCurParams().headingKp, getCurParams().headingKi, getCurParams().headingKd, 0);
-        headingPID.reset();
-        headingPID.setTarget(getCurWaypoint().headingDeg());
-        headingPID.setOutputBounds(-1, 1);
+        headingErrorPID = new PIDFController(getCurParams().headingKp, getCurParams().headingKi, getCurParams().headingKd, 0);
+        headingErrorPID.reset();
+        headingErrorPID.setTarget(0);
+        headingErrorPID.setOutputBounds(-1, 1);
     }
 }
 

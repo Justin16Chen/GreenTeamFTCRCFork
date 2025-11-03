@@ -19,6 +19,8 @@ import java.util.ArrayList;
 
 @Config
 public class Robot {
+    // these units are in inches
+    public static double width = 13.5, length = 16.7, frontToCenterLength = 10, backToCenterLength = 6.7;
     public static Alliance defaultAlliance = Alliance.BLUE;
 
     public final Alliance alliance;
@@ -98,13 +100,13 @@ public class Robot {
 
     public SequentialCommandGroup shootBallCommand() {
         return new SequentialCommandGroup(
-                new InstantCommand(() -> intake.setState(Intake.State.OFF)),
-//                new WaitUntilCommand(shooter::isReadyToShoot, Shooter.shooterParams.maxMotorSpeedUpTime),
                 new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
                 new WaitCommand(Flipper.rotationTimeMs),
                 new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),
+                new WaitCommand(Shooter.threeBallShootTimeMs),
+                new InstantCommand(() -> intake.setState(Intake.State.OFF)),
                 new InstantCommand(() -> flipper.setState(Flipper.State.CLOSED)),
-                new WaitCommand(Flipper.rotationTimeMs),
+                new WaitCommand(Flipper.rotationTimeMs + Shooter.shooterParams.ballShootTime),
                 new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED))
         );
     }

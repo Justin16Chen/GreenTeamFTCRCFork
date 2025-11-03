@@ -47,7 +47,7 @@ public class ShooterVelocityTuning extends ParentOpMode {
         if (g1.isRBClicked())
             intakeMotor.setPower(intakeMotor.getPower() == 0 ? Intake.collectPower : 0);
         if (g1.isYClicked())
-            intakeMotor.setPower(Intake.feedShooterPower);
+            intakeMotor.setPower(Intake.passivePower);
         if (g1.isLBClicked()) {
             flipperBlocking = !flipperBlocking;
             flipperServo.setPosition(flipperBlocking ? Flipper.closePosition : Flipper.openPosition);

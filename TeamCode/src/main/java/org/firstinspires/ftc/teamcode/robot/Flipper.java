@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.arcrobotics.ftclib.command.Command;
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -10,7 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 @Config
 public class Flipper extends Subsystem {
     public static double closePosition = 0.01, openPosition = 0.99;
-    public static long rotationTimeMs = 200;
+    public static long rotationTimeMs = 400;
     public enum State {
         OPEN, CLOSED
     }
@@ -18,12 +20,13 @@ public class Flipper extends Subsystem {
     private ServoImplEx servo;
     public Flipper(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        state = State.OPEN;
+        state = State.CLOSED;
     }
 
     @Override
     public void declareHardware() {
         servo = hardware.getFlipperServo();
+        servo.setPosition(closePosition);
     }
 
     @Override

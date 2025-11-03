@@ -20,8 +20,11 @@ import java.util.Objects;
 @Config
 public final class PinpointLocalizer implements Localizer {
     public static class Params {
+        // old values
+//        public double parYTicks = -141.532;
+//        public double perpXTicks = 17.667;
         public double parYTicks = -141.532;
-        public double perpXTicks = 17.667;
+        public double perpXTicks = 1.27;
         public GoBildaPinpointDriver.EncoderDirection initialParDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD, initialPerpDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
     }
 
@@ -54,6 +57,9 @@ public final class PinpointLocalizer implements Localizer {
         txWorldPinpoint = initialPose;
     }
 
+    public void setInitialPose(Pose2d pose) {
+        txWorldPinpoint = pose;
+    }
     @Override
     public void setPose(Pose2d pose) {
         txWorldPinpoint = pose.times(txPinpointRobot.inverse());

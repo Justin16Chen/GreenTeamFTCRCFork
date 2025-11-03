@@ -5,20 +5,17 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.Pose2d;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 
 public class Waypoint {
     public Pose2d pose;
     public Tolerance tolerance;
-    public DriveParams params;
+    public PathParams params;
     private double distToNextWaypoint;
-   public Waypoint(Pose2d pose, Tolerance tolerance, DriveParams driveParams) {
+   public Waypoint(Pose2d pose, Tolerance tolerance, PathParams pathParams) {
         this.pose = pose;
         this.tolerance = tolerance;
-        this.params = driveParams;
+        this.params = pathParams;
     }
     public double x() {
         return pose.position.x;

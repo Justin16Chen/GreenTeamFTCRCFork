@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -7,7 +8,9 @@ import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
+@Config
 public class Drivetrain extends Subsystem {
+    public static double lateralScaling = 2, axialScaling = 2, headingScaling = 2;
     private DcMotorEx fr, fl, br, bl;
     public Drivetrain(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
@@ -23,8 +26,15 @@ public class Drivetrain extends Subsystem {
 
     @Override
     public void updateState() {
-        if (robot.opmodeType == OpmodeType.TELE)
-            setDrivePowers(g1.getLeftStickX(), -g1.getLeftStickY(), -g1.getRightStickX());
+        if (robot == null || robot.opmodeType == OpmodeType.TELE) {
+            double xSign = Math.signum(g1.getLeftStickX());
+            double ySign = Math.signum(g1.getLeftStickY());
+            double headingSign = Math.signum(g1.getRightStickX());
+            double lateral = xSign * Math.abs(Math.pow(g1.getLeftStickX(), lateralScaling));
+            double axial = ySign * -Math.abs(Math.pow(g1.getLeftStickY(), axialScaling));
+            double heading = headingSign * -Math.abs(Math.pow(g1.getRightStickX(), headingScaling));
+            setDrivePowers(lateral, axial, heading);
+        }
     }
 
     @Override

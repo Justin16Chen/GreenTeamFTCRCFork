@@ -4,6 +4,20 @@ import java.text.DecimalFormat;
 
 // helps for concise, easy printing to telemetry
 public class MathUtils {
+    public static double correctRad(double rad) {
+        while (rad < 0)
+            rad += 2 * Math.PI;
+        while (rad >= 2 * Math.PI)
+            rad -= 2 * Math.PI;
+        return rad;
+    }
+    public static double correctDeg(double deg) {
+        while (deg < 0)
+            deg += 360;
+        while (deg >= 360)
+            deg -= 360;
+        return deg;
+    }
     public static String format2(Number num) {
         return format(num, 2);
     }
