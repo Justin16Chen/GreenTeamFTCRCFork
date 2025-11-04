@@ -1,16 +1,18 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.arcrobotics.ftclib.command.Command;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.utils.commands.SimpleCommand;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Drivetrain extends Subsystem {
-    public static double lateralScaling = 2, axialScaling = 2, headingScaling = 2;
+    public static double lateralScaling = 3, axialScaling = 3, headingScaling = 3;
     private DcMotorEx fr, fl, br, bl;
     public Drivetrain(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
@@ -57,5 +59,24 @@ public class Drivetrain extends Subsystem {
 
     public void printMotorPowers() {
         telemetry.addData("dt powers (FL FR BL BR)", MathUtils.format3(fl.getPower()) + ", " + MathUtils.format3(fr.getPower()) + ", " + MathUtils.format3(bl.getPower()) + ", " + MathUtils.format3(br.getPower()));
+    }
+
+    public Command driveForwardsIfNecessary() {
+        return new SimpleCommand() {
+            @Override
+            public void run() {
+                if (robot.shooter.getAvgMotorSpeed() < robot.shooter.getDriveForwardsShooterSpeed())
+                    setDrivePowers(0, robot.shooter.getDriveForwardsDrivetrainSpeed(), 0);
+            }
+
+            @Override
+            public void end(boolean interrupted) {
+                setDrivePowers(0, 0, 0);
+            }
+            @Override
+            public boolean isDone() {
+                return robot.intake.getState() != Intake.State.FEED_SHOOTER;
+            }
+        };
     }
 }

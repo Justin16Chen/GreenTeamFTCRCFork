@@ -22,7 +22,7 @@ public class EverythingTele extends ParentOpMode {
     public void initiation() {
         robot = new Robot(hardware, telemetry, OpmodeType.TELE);
         robot.declareHardware();
-        robot.setInputInfo(new TeleKeybinds(g1, g2));
+        robot.setInputInfo(new Keybinds(g1, g2));
         CommandScheduler.getInstance().reset();
     }
 

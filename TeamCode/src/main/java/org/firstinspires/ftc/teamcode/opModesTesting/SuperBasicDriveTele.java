@@ -1,24 +1,27 @@
 package org.firstinspires.ftc.teamcode.opModesTesting;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.robot.Drivetrain;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
-import org.firstinspires.ftc.teamcode.opModesCompetition.tele.TeleKeybinds;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 
 @Config
 @TeleOp(name="Super Basic Drive", group="Testing")
 public class SuperBasicDriveTele extends OpMode {
-    public static double startX = 24, startY = 72 - Robot.frontToCenterLength, startA = 90;
+    public static double fieldRotation = 90;
+    public static double startX = 47, startY = 54.7, startA = 90;
     private GamepadTracker g1, g2;
     private Drivetrain dt;
     private PinpointLocalizer pinpoint;
@@ -34,10 +37,9 @@ public class SuperBasicDriveTele extends OpMode {
 
         dt = new Drivetrain(hardware, telemetry);
         dt.declareHardware();
-        dt.setInputInfo(new TeleKeybinds(g1, g2));
+        dt.setInputInfo(new Keybinds(g1, g2));
 
-        pinpoint = new PinpointLocalizer(hardwareMap, new Pose2d(startX, startY, startA), telemetry);
-
+        pinpoint = new PinpointLocalizer(hardwareMap, new Pose2d(startX, startY, Math.toDegrees(startA)), telemetry);
     }
 
     @Override
@@ -47,6 +49,14 @@ public class SuperBasicDriveTele extends OpMode {
 
         dt.updateState();
         pinpoint.update();
+
+        double x = pinpoint.pose().position.x, y = pinpoint.pose().position.y, heading = pinpoint.pose().heading.toDouble();
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas fieldOverlay = packet.fieldOverlay();
+        fieldOverlay.setRotation(Math.toRadians(fieldRotation)); // rotate 90deg clockwise
+        fieldOverlay.strokeCircle(x, y, 5);
+        fieldOverlay.strokeLine(x, y, x + 5 * Math.cos(heading), y + 5 * Math.sin(heading));
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
         telemetry.addLine("DRIVETRAIN");
         telemetry.addData("strafe", g1.getLeftStickX());

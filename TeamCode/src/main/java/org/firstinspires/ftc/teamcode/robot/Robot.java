@@ -2,14 +2,16 @@ package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.arcrobotics.ftclib.command.Command;
+import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
+import org.firstinspires.ftc.teamcode.utils.commands.WaitUntilCommand;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
-import org.firstinspires.ftc.teamcode.utils.generalOpModes.Keybinds;
-import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
+import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Sensor;
@@ -98,16 +100,18 @@ public class Robot {
             subsystem.updateState();
     }
 
-    public SequentialCommandGroup shootBallCommand() {
-        return new SequentialCommandGroup(
-                new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
-                new WaitCommand(Flipper.rotationTimeMs),
-                new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),
-                new WaitCommand(Shooter.threeBallShootTimeMs),
-                new InstantCommand(() -> intake.setState(Intake.State.OFF)),
-                new InstantCommand(() -> flipper.setState(Flipper.State.CLOSED)),
-                new WaitCommand(Flipper.rotationTimeMs + Shooter.shooterParams.ballShootTime),
-                new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED))
+    public Command shootBallCommand() {
+        return new ParallelCommandGroup(
+                new SequentialCommandGroup(
+                        new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
+                        new WaitCommand(Flipper.rotationTimeMs),
+                        new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),
+                        new WaitUntilCommand(() -> intake.getState() != Intake.State.FEED_SHOOTER, Shooter.maxShootTimeMs),
+                        new InstantCommand(() -> flipper.setState(Flipper.State.CLOSED)),
+                        new WaitCommand(Flipper.rotationTimeMs + Shooter.shooterParams.ballShootTime),
+                        new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED))
+                )
+//                drivetrain.driveForwardsIfNecessary()
         );
     }
 }

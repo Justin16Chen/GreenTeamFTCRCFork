@@ -26,7 +26,7 @@ public class Hardware {
     public static String leftHoodServoName = "leftHoodServo", rightHoodServoName = "rightHoodServo";
     public static int leftHoodServoDownPWM = 550, leftHoodServoUpPWM = 2400, rightHoodServoDownPWM = 2400, rightHoodServoUpPWM = 550;
     public static String flipperServoName = "flipperServo";
-    public static int flipperOpenPWM = 975, flipperClosePWM = 1040;
+    public static int flipperOpenPWM = 975, flipperClosePWM = 1050;
     public static String leftParkServoName = "leftParkServo", rightParkServoName = "rightParkServo";
     public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkWPM = 1676;
 
