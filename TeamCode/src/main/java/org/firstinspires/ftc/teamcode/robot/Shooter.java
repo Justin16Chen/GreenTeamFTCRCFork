@@ -41,14 +41,27 @@ public class Shooter extends Subsystem {
         public long extraShootTime = 0;
         public double maxSpeedUpTime = 5;
     }
+    public static class CorrectiveDriveParams {
+        public double desiredNearShootDistance = 55.93;
+        public double distTol = 1, headingTol = 2;
+        public double[] drivePIDs = { 0.07, 0, 0.01, 0.2, 0, 0.01 };
+        public double minSpeed = 0.5;
+        public double maxSpeed = 0.8, maxHeadingSpeed = 0.8;
+        public double nearZoneShootX = 27.5, nearZoneShootY = 28.5, nearZoneShootAngle = 44;
+    }
+    public static class HoodParams {
+        public double defaultPosition = 0.8;
+        public double downPosition = 0.88, upPosition = 0.4;
+        public double manualChangeAmount = 0.01;
+        public PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
+    }
     public static ShootingTuning shooterParams = new ShootingTuning();
+    public static CorrectiveDriveParams correctiveDriveParams = new CorrectiveDriveParams();
+    public static HoodParams hoodParams = new HoodParams();
     public static boolean ENABLE_TESTING = false;
     public static long maxShootTimeMs = 5000;
     public static double passivePower = 0.45, intakeOnPower = 0.75;
-    public static double hoodDefaultPosition = 0.76;
-    public static double hoodDownPosition = 0.89, hoodUpPosition = 0.4;
-    public static double manualHoodChangeAmount = 0.01;
-    public static PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
+
     public enum State {
         OFF,
         TRACK_PASSIVE_SPEED,
@@ -76,7 +89,7 @@ public class Shooter extends Subsystem {
         rightMotor = hardware.getRightShooterMotor();
         leftServo = hardware.getLeftHoodServo();
         rightServo = hardware.getRightHoodServo();
-        targetHoodPos = hoodDefaultPosition;
+        targetHoodPos = hoodParams.defaultPosition;
         setRawServoPositions(targetHoodPos);
     }
 
@@ -84,10 +97,10 @@ public class Shooter extends Subsystem {
     public void updateState() {
         if (ENABLE_TESTING) {
             if (keybinds.g1.isDpadUpPressed()) {
-                targetHoodPos -= manualHoodChangeAmount;
+                targetHoodPos -= hoodParams.manualChangeAmount;
                 setRawServoPositions(targetHoodPos);
             } else if (keybinds.g1.isDpadDownPressed()) {
-                targetHoodPos += manualHoodChangeAmount;
+                targetHoodPos += hoodParams.manualChangeAmount;
                 setRawServoPositions(targetHoodPos);
             }
         }
@@ -115,7 +128,7 @@ public class Shooter extends Subsystem {
                 }
 
                 if (!ENABLE_TESTING) {
-                    targetHoodPos = hoodEquation.calculate(getAvgMotorSpeed());
+                    targetHoodPos = hoodParams.hoodEquation.calculate(getAvgMotorSpeed());
                     setRawServoPositions(targetHoodPos);
                 }
 
@@ -147,7 +160,7 @@ public class Shooter extends Subsystem {
         state = newState;
         if (state == State.OFF) {
             setMotorPowers(0);
-            setRawServoPositions(hoodDownPosition);
+            setRawServoPositions(hoodParams.downPosition);
         }
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
@@ -176,7 +189,7 @@ public class Shooter extends Subsystem {
         return (leftServo.getPosition() + rightServo.getPosition()) / 2.;
     }
     private void setRawServoPositions(double pos) {
-        pos = Range.clip(pos, hoodUpPosition, hoodDownPosition);
+        pos = Range.clip(pos, hoodParams.upPosition, hoodParams.downPosition);
         leftServo.setPosition(pos);
         rightServo.setPosition(pos);
     }

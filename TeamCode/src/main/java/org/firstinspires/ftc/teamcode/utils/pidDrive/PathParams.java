@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.utils.pidDrive;
 import com.acmerobotics.dashboard.config.Config;
 
 import java.util.Arrays;
+import java.util.function.BooleanSupplier;
 
 @Config
 public class PathParams {
@@ -18,6 +19,7 @@ public class PathParams {
     public double slowDownPercent; // if this equals 1, then the drivetrain will completely stop at this waypoint; if this equals 0, this waypoint will have no influence on slowing down the drivetrain as it approaches this point
     public boolean passPosition; // the robot only needs to pass its target position, not fall within tolerance of it
     public double maxTime;
+    public BooleanSupplier customEndCondition = () -> false;
 
     public double speedKp, speedKi, speedKd, headingKp, headingKi, headingKd;
 

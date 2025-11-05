@@ -31,7 +31,7 @@ public class SimpleRedAuto extends OpMode {
     public static double fieldRotation = 90;
     public static class DrivePoses {
         public double startX = 31.15, startY = 62, startA = 90;
-        public double shootX = 29, shootY = 27, shootA = 44;
+        public double shootX = 27.5, shootY = 28.5, shootA = 44;
         public double collectX1 = 28, collectY1 = 13, collectA1 = 0;
         public double collectX2 = 52, collectY2 = 13, collectA2 = 0;
     }
@@ -42,7 +42,7 @@ public class SimpleRedAuto extends OpMode {
     }
     public static class DriveParams {
         public double[] shoot1PIDs = { 0.07, 0, 0.01, 0.02, 0, 0 };
-        public double shoot1MinSpeed = 0.55, shoot1LateralWeight = 1.5, shoot2LateralWeight = 1.3;
+        public double shoot1MinSpeed = 0.55, shoot1LateralWeight = 1.3, shoot2LateralWeight = 1.1;
         public double[] collect1PIDs = { 0.09, 0, 0, 0.05, 0, 0 };
         public double collect1MinSpeed = 0.4;
         public double[] collect2PIDs = { 0.06, 0, 0, 0.015, 0, 0 };
@@ -85,6 +85,7 @@ public class SimpleRedAuto extends OpMode {
         PathParams collect2Params = new PathParams(driveParams.collect2PIDs);
         collect2Params.maxSpeed = driveParams.collect2MaxSpeed;
         collect2Params.minSpeed = driveParams.collect2MinSpeed;
+        collect1Params.customEndCondition = () -> robot.pinpoint.pose().position.x >= drivePoses.collectX2;
 
         PathParams shoot2Params = new PathParams(driveParams.shoot1PIDs);
         shoot2Params.minSpeed = driveParams.shoot1MinSpeed;

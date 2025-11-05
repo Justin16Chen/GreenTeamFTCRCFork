@@ -183,7 +183,7 @@ public class DrivePath implements Command {
     }
     @Override
     public boolean isFinished() {
-        return reachedDestination;
+        return reachedDestination || getCurParams().customEndCondition.getAsBoolean();
     }
 
     @Override
