@@ -24,11 +24,14 @@ public class Hardware {
     public static boolean reverseFrontLeft = true, reverseFrontRight = false, reverseBackLeft = true, reverseBackRight = false;
     public static String intakeName = "intake", shooterLeftName = "leftShooter", shooterRightName = "rightShooter";
     public static String leftHoodServoName = "leftHoodServo", rightHoodServoName = "rightHoodServo";
-    public static int leftHoodServoDownPWM = 550, leftHoodServoUpPWM = 2400, rightHoodServoDownPWM = 2400, rightHoodServoUpPWM = 550;
+    public static int leftHoodServoDownPWM = 555, leftHoodServoUpPWM = 2405, rightHoodServoDownPWM = 2400, rightHoodServoUpPWM = 550;
+    // 685, 2535
     public static String flipperServoName = "flipperServo";
     public static int flipperOpenPWM = 975, flipperClosePWM = 1050;
     public static String leftParkServoName = "leftParkServo", rightParkServoName = "rightParkServo";
     public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkWPM = 1676;
+    public static String lightName = "light";
+    public static int minLightPWM = 500, maxLightPWM = 2520;
 
 
     public final HardwareMap hardwareMap;
@@ -114,5 +117,10 @@ public class Hardware {
         ServoImplEx servo = hardwareMap.get(ServoImplEx.class, flipperServoName);
         servo.setPwmRange(new PwmControl.PwmRange(flipperClosePWM, flipperOpenPWM));
         return servo;
+    }
+    public ServoImplEx getLight() {
+        ServoImplEx light = hardwareMap.get(ServoImplEx.class, lightName);
+        light.setPwmRange(new PwmControl.PwmRange(minLightPWM, maxLightPWM));
+        return light;
     }
 }

@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Flipper extends Subsystem {
-    public static double closePosition = 0.01, openPosition = 0.99;
+    public static double closePosition = 0.01, openPosition = 0.95;
     public static long rotationTimeMs = 400;
     public enum State {
         OPEN, CLOSED

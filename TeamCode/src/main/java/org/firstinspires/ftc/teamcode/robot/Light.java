@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -17,75 +16,72 @@ public class Light extends Subsystem {
     // x = min + (max - min) * t
     // t = (x - min)/(max-min)
     public static class Params {
-        public double minPwm = 500, maxPwm = 2520;
-        public double off = inverseLerp(minPwm, maxPwm, 600);
-        public double bright = inverseLerp(minPwm, maxPwm, 1000);
-        public double dim = inverseLerp(minPwm, maxPwm, 750);
+        public double off = inverseLerp(Hardware.minLightPWM, Hardware.maxLightPWM, 600); // converting PWM of 600 into corresponding decimal position
+        public double bright = inverseLerp(Hardware.minLightPWM, Hardware.maxLightPWM, 1000);
+        public double dim = inverseLerp(Hardware.minLightPWM, Hardware.maxLightPWM, 750);
         public double flashTime = 0.8;
     }
     public static Params params = new Params();
     private ServoImplEx light;
     private double lightValue;
-    public enum LightState {
-        SET,
+    public enum State {
+        PASSIVE,
         FLASH
     }
-    private LightState lightState;
-    private ElapsedTime flashTimer;
+    private State state;
+    private final ElapsedTime flashTimer;
+    private double passiveValue, flashOffValue, flashOnValue;
     public Light(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
-        lightState = LightState.SET;
+        state = State.PASSIVE;
         lightValue = 0;
         flashTimer = new ElapsedTime();
+
+        setPassiveValue(params.off);
+        setFlashValues(params.off, params.dim);
     }
     @Override
     public void declareHardware() {
-        light = hardware.hardwareMap.get(ServoImplEx.class, "light");
-        light.setPwmRange(new PwmControl.PwmRange(params.minPwm, params.maxPwm));
+        light = hardware.getLight();
     }
 
     @Override
     public void updateState() {
-        if(robot.shooter.getAvgMotorSpeed() < robot.shooter.getMinAvgMotorSpeed() && lightState != LightState.FLASH) {
-            lightState = LightState.FLASH;
-            flashTimer.reset();
+        switch (state) {
+            case PASSIVE:
+                if(robot.shooter.getAvgMotorSpeed() < robot.shooter.getMinAvgMotorSpeed()) {
+                    state = State.FLASH;
+                    flashTimer.reset();
+                    break;
+                }
+                light.setPosition(passiveValue);
+                break;
+            case FLASH:
+                if (flashTimer.seconds() > params.flashTime * 2)
+                    flashTimer.reset();
+                if (flashTimer.seconds() > params.flashTime)
+                    lightValue = flashOffValue;
+                else
+                    lightValue = flashOnValue;
+
+                light.setPosition(lightValue);
+                break;
         }
-//        else if(robot.indexer.getLightTimerSeconds() < Indexer.params.lightFlashTime) {
-//            lightState = LightState.SET;
-//            lightValue = params.dim;
-//        }
-        else {
-            lightValue = params.off;
-            lightState = LightState.SET;
-        }
-        updateLight();
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+    public void setPassiveValue(double value) {
+        passiveValue = value;
+    }
+    public void setFlashValues(double off, double on) {
+        flashOffValue = off;
+        flashOnValue = on;
     }
 
     @Override
     public void printInfo() {
 
-    }
-    private void updateLight() {
-        if (lightState == LightState.FLASH) {
-            if (flashTimer.seconds() > params.flashTime)
-                lightValue = params.off;
-            else
-                lightValue = params.bright;
-            if (flashTimer.seconds() > params.flashTime * 2)
-                flashTimer.reset();
-        }
-        light.setPosition(lightValue);
-    }
-    private double lerp(double a, double b, double t) {
-        return a + (b - a) * t;
-    }
-    public double getLightValue() {
-        return lightValue;
-    }
-    public void setLightState(LightState lightState) {
-        this.lightState = lightState;
-    }
-    public void setLightValue(double value) {
-        lightValue = value;
     }
 }

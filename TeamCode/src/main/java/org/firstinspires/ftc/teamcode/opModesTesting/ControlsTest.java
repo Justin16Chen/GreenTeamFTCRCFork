@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
 
-@TeleOp(name="Controls test")
+@TeleOp(name="Controls test", group="Testing")
 public class ControlsTest extends ParentOpMode {
     private GamepadTracker g1;
     private boolean clickedRB;

@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.Command;
-import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 
@@ -46,7 +45,7 @@ public class Robot {
         sensors = new ArrayList<>();
 
         pinpoint = new PinpointLocalizer(hardware.hardwareMap, new Pose2d(0, 0, 0), telemetry);
-        drivetrain = new Drivetrain(hardware, telemetry);
+        drivetrain = new Drivetrain(hardware, telemetry, opmodeType);
         subsystems.add(drivetrain);
         intake = new Intake(hardware, telemetry);
         subsystems.add(intake);
@@ -100,18 +99,19 @@ public class Robot {
             subsystem.updateState();
     }
 
-    public Command shootBallCommand() {
-        return new ParallelCommandGroup(
-                new SequentialCommandGroup(
-                        new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
-                        new WaitCommand(Flipper.rotationTimeMs),
-                        new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),
-                        new WaitUntilCommand(() -> intake.getState() != Intake.State.FEED_SHOOTER, Shooter.maxShootTimeMs),
-                        new InstantCommand(() -> flipper.setState(Flipper.State.CLOSED)),
-                        new WaitCommand(Flipper.rotationTimeMs + Shooter.shooterParams.ballShootTime),
-                        new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED))
-                )
-//                drivetrain.driveForwardsIfNecessary()
+    public Command shootBallCommand(boolean returnToPassiveSpeed) {
+        return new SequentialCommandGroup(
+                new InstantCommand(() -> {
+                    shooter.setShooting(true);
+                    flipper.setState(Flipper.State.OPEN);
+                }),
+                new WaitCommand(Flipper.rotationTimeMs),
+                new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),
+                new WaitUntilCommand(() -> intake.getState() != Intake.State.FEED_SHOOTER, Shooter.maxShootTimeMs),
+                new InstantCommand(() -> flipper.setState(Flipper.State.CLOSED)),
+                new WaitCommand(Flipper.rotationTimeMs + Shooter.shooterParams.extraShootTime),
+                returnToPassiveSpeed ? new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) : new InstantCommand(() -> {}),
+                new InstantCommand(() -> shooter.setShooting(false))
         );
     }
 }

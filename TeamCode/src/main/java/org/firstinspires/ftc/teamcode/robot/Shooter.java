@@ -11,9 +11,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.opModesTesting.ShooterSpeedRecorder;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
-import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
+import org.firstinspires.ftc.teamcode.utils.misc.PowerEquation;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 import java.util.Collections;
@@ -21,26 +21,34 @@ import java.util.Set;
 
 @Config
 public class Shooter extends Subsystem {
+    /*
+    FAR POSITION where robot intake was aligned at (24, 24)
+    public double nearZoneTargetSpeed = 340, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.95; old speed settings where
+    public static LineEquation hoodEquation = new LineEquation(-0.00595, 2.344);
 
-    public double getMinAvgMotorSpeed() {
-        return shooterParams.nearZoneMinSpeed;
-    }
+    MIDDLE POSITION where back of robot was aligned at (24, 24)
+    public double nearZoneTargetSpeed = 320, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
+    public static PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
 
+
+     */
     public static class ShootingTuning {
         public double minPower = -0.2;
-        public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.1;
-        public double speedErrorToApplyWeightingThreshold = 50;
-        public double nearZoneTargetSpeed = 300, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.9;
-        public double nearZoneMinSpeed = 280, nearZoneDriveForwardShooterSpeed = 260, nearZoneDriveForwardDrivetrainSpeed = 0.5;
-        public long ballShootTime = 1000;
+        public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.15;
+        public double speedErrorToApplyWeightingThreshold = 30, speedErrorToApplyWeightingThresholdWhenShooting = 10;
+        public double nearZoneTargetSpeed = 320, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
+        public double nearZoneMinSpeed = 300;
+        public long extraShootTime = 0;
+        public double maxSpeedUpTime = 5;
     }
     public static ShootingTuning shooterParams = new ShootingTuning();
+    public static boolean ENABLE_TESTING = false;
     public static long maxShootTimeMs = 5000;
-    public static double passivePower = 0.3, intakeOnPower = 0.75;
-    public static double hoodDefaultPosition = 0.2;
-    public static double hoodManualIncrementPercent = 0.02;
+    public static double passivePower = 0.45, intakeOnPower = 0.75;
+    public static double hoodDefaultPosition = 0.76;
     public static double hoodDownPosition = 0.89, hoodUpPosition = 0.4;
-    public static LineEquation hoodEquation = new LineEquation(-0.00595, 2.344);
+    public static double manualHoodChangeAmount = 0.01;
+    public static PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
     public enum State {
         OFF,
         TRACK_PASSIVE_SPEED,
@@ -51,13 +59,15 @@ public class Shooter extends Subsystem {
     private ServoImplEx leftServo, rightServo;
     private final PIDFController speedPidf; // input error between current speed and target speed, output desired power
     private double targetHoodPos, pidMotorPower;
-    private ElapsedTime timer;
+    private final ElapsedTime timer;
+    private boolean shooting;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
         speedPidf = new PIDFController(shooterParams.shooterKp, shooterParams.shooterKi, shooterParams.shooterKd, shooterParams.shooterKf);
         speedPidf.setOutputBounds(0, 0.99);
         setState(State.TRACK_PASSIVE_SPEED);
         timer = new ElapsedTime();
+        shooting = false;
     }
 
     @Override
@@ -67,19 +77,20 @@ public class Shooter extends Subsystem {
         leftServo = hardware.getLeftHoodServo();
         rightServo = hardware.getRightHoodServo();
         targetHoodPos = hoodDefaultPosition;
-        setLerpedServoPositions(targetHoodPos);
+        setRawServoPositions(targetHoodPos);
     }
 
     @Override
     public void updateState() {
-        if (keybinds.g1.isDpadUpPressed()) {
-            shooterParams.nearZoneTargetSpeed += 10;
-            speedPidf.setTarget(shooterParams.nearZoneTargetSpeed);
-        } else if (keybinds.g1.isDpadDownPressed()) {
-            shooterParams.nearZoneTargetSpeed -= 10;
-            speedPidf.setTarget(shooterParams.nearZoneTargetSpeed);
+        if (ENABLE_TESTING) {
+            if (keybinds.g1.isDpadUpPressed()) {
+                targetHoodPos -= manualHoodChangeAmount;
+                setRawServoPositions(targetHoodPos);
+            } else if (keybinds.g1.isDpadDownPressed()) {
+                targetHoodPos += manualHoodChangeAmount;
+                setRawServoPositions(targetHoodPos);
+            }
         }
-
 
         switch (state) {
             case OFF:
@@ -94,7 +105,7 @@ public class Shooter extends Subsystem {
                 break;
             case TRACK_SHOOTER_SPEED:
                 if (keybinds.check(Keybinds.D1Trigger.SHOOT) && robot != null) {
-                    robot.shootBallCommand().schedule();
+                    robot.shootBallCommand(true).schedule();
                     shooterTrackerCommand().schedule();
                 }
                 if (keybinds.check(Keybinds.D1Trigger.STOP_SHOOTING)) {
@@ -103,19 +114,29 @@ public class Shooter extends Subsystem {
                     break;
                 }
 
-                targetHoodPos = Range.clip(hoodEquation.calculate(getAvgMotorSpeed()), 0.01, 0.99);
-                setRawServoPositions(targetHoodPos);
+                if (!ENABLE_TESTING) {
+                    targetHoodPos = hoodEquation.calculate(getAvgMotorSpeed());
+                    setRawServoPositions(targetHoodPos);
+                }
 
                 pidMotorPower = speedPidf.update(getAvgMotorSpeed());
-                // weight pid power to reduce variance once error is small enough
-                if (Math.abs(shooterParams.nearZoneTargetSpeed - getAvgMotorSpeed()) < shooterParams.speedErrorToApplyWeightingThreshold)
-                    pidMotorPower = MathUtils.lerp(pidMotorPower, shooterParams.nearZoneTargetConstant, shooterParams.nearZoneTargetConstantWeighting);
-                pidMotorPower = Math.max(shooterParams.minPower, pidMotorPower);
+                if (!shooting) {
+                    // weight pid power to reduce variance once error is small enough
+                    if (Math.abs(getTargetMotorSpeed() - getAvgMotorSpeed()) < shooterParams.speedErrorToApplyWeightingThreshold)
+                        pidMotorPower = MathUtils.lerp(pidMotorPower, shooterParams.nearZoneTargetConstant, shooterParams.nearZoneTargetConstantWeighting);
+                    pidMotorPower = Math.max(shooterParams.minPower, pidMotorPower);
 
-                if (robot.intake.getState() == Intake.State.ON)
-                    setMotorPowers(Math.min(pidMotorPower, intakeOnPower)); // give collector some lenience
-                else
-                    setMotorPowers(pidMotorPower);
+                    if (robot.intake.getState() == Intake.State.ON)
+                        setMotorPowers(Math.min(pidMotorPower, intakeOnPower)); // give collector some lenience
+                    else
+                        setMotorPowers(pidMotorPower);
+                }
+                else {
+                    if (getAvgMotorSpeed() < getTargetMotorSpeed() - shooterParams.speedErrorToApplyWeightingThresholdWhenShooting)
+                        setMotorPowers(0.99);
+                    else
+                        setMotorPowers(pidMotorPower);
+                }
                 break;
         }
     }
@@ -154,15 +175,14 @@ public class Shooter extends Subsystem {
     public double getAvgServoPosition() {
         return (leftServo.getPosition() + rightServo.getPosition()) / 2.;
     }
-    private void setLerpedServoPositions(double pos) {
-        double lerpedValue = MathUtils.lerp(hoodDownPosition, hoodUpPosition, pos);
-        leftServo.setPosition(lerpedValue);
-        rightServo.setPosition(lerpedValue);
-    }
     private void setRawServoPositions(double pos) {
         pos = Range.clip(pos, hoodUpPosition, hoodDownPosition);
         leftServo.setPosition(pos);
         rightServo.setPosition(pos);
+    }
+
+    public boolean canShootThreeNear() {
+        return getAvgMotorSpeed() > shooterParams.nearZoneMinSpeed;
     }
 
     @Override
@@ -213,10 +233,17 @@ public class Shooter extends Subsystem {
         };
     }
 
-    public double getDriveForwardsShooterSpeed() {
-        return shooterParams.nearZoneDriveForwardShooterSpeed;
+    public void setShooting(boolean shooting) {
+        this.shooting = shooting;
     }
-    public double getDriveForwardsDrivetrainSpeed() {
-        return shooterParams.nearZoneDriveForwardDrivetrainSpeed;
+    public boolean isShooting() {
+        return shooting;
+    }
+
+    public double getMinAvgMotorSpeed() {
+        return shooterParams.nearZoneMinSpeed;
+    }
+    public double getTargetMotorSpeed() {
+        return shooterParams.nearZoneTargetSpeed;
     }
 }
