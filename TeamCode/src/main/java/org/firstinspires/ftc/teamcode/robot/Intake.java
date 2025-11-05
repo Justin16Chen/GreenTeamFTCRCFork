@@ -113,9 +113,6 @@ public class Intake extends Subsystem {
                     setState(State.OFF);
                     break;
                 }
-
-                motor.setPower(feedShooterPower);
-
                 break;
 
         }

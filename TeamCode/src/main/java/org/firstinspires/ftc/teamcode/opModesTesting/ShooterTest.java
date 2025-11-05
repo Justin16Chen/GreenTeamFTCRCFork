@@ -62,12 +62,12 @@ public class ShooterTest extends ParentOpMode {
         if (g1.isDpadUpPressed()) {
             targetServoPosition += 0.01;
             targetServoPosition = Range.clip(targetServoPosition, 0, 1);
-            setServoPosition(MathUtils.lerp(Shooter.hoodDownPosition, Shooter.hoodUpPosition, targetServoPosition));
+            setServoPosition(MathUtils.lerp(Shooter.hoodParams.downPosition, Shooter.hoodParams.upPosition, targetServoPosition));
         }
         else if (g1.isDpadDownPressed()) {
             targetServoPosition -= 0.01;
             targetServoPosition = Range.clip(targetServoPosition, 0, 1);
-            setServoPosition(MathUtils.lerp(Shooter.hoodDownPosition, Shooter.hoodUpPosition, targetServoPosition));
+            setServoPosition(MathUtils.lerp(Shooter.hoodParams.downPosition, Shooter.hoodParams.upPosition, targetServoPosition));
         }
 
         // joystick increments

@@ -109,7 +109,7 @@ public class Robot {
                 new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),
                 new WaitUntilCommand(() -> intake.getState() != Intake.State.FEED_SHOOTER, Shooter.maxShootTimeMs),
                 new InstantCommand(() -> flipper.setState(Flipper.State.CLOSED)),
-                new WaitCommand(Flipper.rotationTimeMs + Shooter.shooterParams.extraShootTime),
+                new WaitCommand(Flipper.rotationTimeMs),
                 returnToPassiveSpeed ? new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) : new InstantCommand(() -> {}),
                 new InstantCommand(() -> shooter.setShooting(false))
         );

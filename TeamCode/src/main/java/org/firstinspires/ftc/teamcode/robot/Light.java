@@ -47,26 +47,26 @@ public class Light extends Subsystem {
 
     @Override
     public void updateState() {
-        switch (state) {
-            case PASSIVE:
-                if(robot.shooter.getAvgMotorSpeed() < robot.shooter.getMinAvgMotorSpeed()) {
-                    state = State.FLASH;
-                    flashTimer.reset();
-                    break;
-                }
-                light.setPosition(passiveValue);
-                break;
-            case FLASH:
-                if (flashTimer.seconds() > params.flashTime * 2)
-                    flashTimer.reset();
-                if (flashTimer.seconds() > params.flashTime)
-                    lightValue = flashOffValue;
-                else
-                    lightValue = flashOnValue;
-
-                light.setPosition(lightValue);
-                break;
-        }
+//        switch (state) {
+//            case PASSIVE:
+//                if(robot.shooter.getAvgMotorSpeed() < robot.shooter.getMinAvgMotorSpeed()) {
+//                    state = State.FLASH;
+//                    flashTimer.reset();
+//                    break;
+//                }
+//                light.setPosition(passiveValue);
+//                break;
+//            case FLASH:
+//                if (flashTimer.seconds() > params.flashTime * 2)
+//                    flashTimer.reset();
+//                if (flashTimer.seconds() > params.flashTime)
+//                    lightValue = flashOffValue;
+//                else
+//                    lightValue = flashOnValue;
+//
+//                light.setPosition(lightValue);
+//                break;
+//        }
     }
 
     public void setState(State state) {
