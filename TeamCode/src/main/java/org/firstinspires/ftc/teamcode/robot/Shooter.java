@@ -21,35 +21,29 @@ import java.util.Set;
 
 @Config
 public class Shooter extends Subsystem {
+
     /*
-    FAR POSITION where robot intake was aligned at (24, 24)
-    public double nearZoneTargetSpeed = 340, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.95; old speed settings where
-    public static LineEquation hoodEquation = new LineEquation(-0.00595, 2.344);
+        FAR POSITION where robot intake was aligned at (24, 24)
+        public double nearZoneTargetSpeed = 340, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.95; old speed settings where
+        public static LineEquation hoodEquation = new LineEquation(-0.00595, 2.344);
 
-    MIDDLE POSITION where back of robot was aligned at (24, 24)
-    public double nearZoneTargetSpeed = 320, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
-    public static PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
+        MIDDLE POSITION where back of robot was aligned at (24, 24)
+        public double nearZoneTargetSpeed = 320, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
+        public static PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
 
 
-     */
+         */
     public static class ShootingTuning {
         public double maxSpeedUpTime = 5;
         public double minPower = -0.2;
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.15;
-        public double speedErrorToApplyWeightingThreshold = 30, speedErrorToApplyWeightingThresholdWhenShooting = 10;
+        public double maxPowerSpeedErrorThreshold = 20;
         public double nearZoneTargetSpeed = 320, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
         public double nearZoneMinSpeed = 290;
         public double farZoneTargetSpeed = 320, farZoneTargetConstantWeighting = 0.7, farZoneTargetConstant = 0.93;
         public double farZoneMinSpeed = 300;
     }
-    public static class CorrectiveDriveParams {
-        public double desiredNearShootDistance = 55.93;
-        public double distTol = 1, headingTol = 2;
-        public double[] drivePIDs = { 0.07, 0, 0.01, 0.15, 0, 0.01 };
-        public double minSpeed = 0.5;
-        public double maxSpeed = 0.8, maxHeadingSpeed = 0.8;
-        public double nearZoneShootX = 27.5, nearZoneShootY = 28.5, nearZoneShootAngle = 44;
-    }
+
     public static class HoodParams {
         public double defaultPosition = 0.8;
         public double downPosition = 0.88, upPosition = 0.4;
@@ -57,11 +51,10 @@ public class Shooter extends Subsystem {
         public PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
     }
     public static ShootingTuning shooterParams = new ShootingTuning();
-    public static CorrectiveDriveParams correctiveDriveParams = new CorrectiveDriveParams();
     public static HoodParams hoodParams = new HoodParams();
     public static boolean ENABLE_TESTING = false;
     public static long maxShootTimeMs = 5000;
-    public static double passivePower = 0.45, intakeOnPower = 0.75;
+    public static double passivePower = 0.3, intakeOnPower = 0.75;
 
     public enum State {
         OFF,
@@ -79,14 +72,12 @@ public class Shooter extends Subsystem {
     private final PIDFController speedPidf; // input error between current speed and target speed, output desired power
     private double targetHoodPos, pidMotorPower;
     private final ElapsedTime timer;
-    private boolean shooting;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
         speedPidf = new PIDFController(shooterParams.shooterKp, shooterParams.shooterKi, shooterParams.shooterKd, shooterParams.shooterKf);
         speedPidf.setOutputBounds(0, 0.99);
         setState(State.TRACK_PASSIVE_SPEED);
         timer = new ElapsedTime();
-        shooting = false;
         zone = Zone.NEAR;
     }
 
@@ -112,26 +103,25 @@ public class Shooter extends Subsystem {
             }
         }
 
+        if (keybinds.check(Keybinds.D1Trigger.SHOOT_NEAR))
+            zone = Zone.NEAR;
+        else if (keybinds.check(Keybinds.D1Trigger.SHOOT_FAR))
+            zone = Zone.FAR;
+
         switch (state) {
             case OFF:
                 break;
             case TRACK_PASSIVE_SPEED:
                 if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL)) {
                     setState(State.TRACK_SHOOTER_SPEED);
-                    robot.intake.setState(Intake.State.PASSIVE_INTAKE);
                     break;
                 }
                 setMotorPowers(passivePower);
                 break;
             case TRACK_SHOOTER_SPEED:
-                if (keybinds.check(Keybinds.D1Trigger.SHOOT) && robot != null) {
-                    robot.shootBallCommand(true).schedule();
+                if (keybinds.check(Keybinds.D1Trigger.START_SHOOTING) && robot != null) {
+                    robot.shootBallCommand(false, true).schedule();
                     shooterTrackerCommand().schedule();
-                }
-                if (keybinds.check(Keybinds.D1Trigger.STOP_SHOOTING)) {
-                    setState(State.TRACK_PASSIVE_SPEED);
-                    robot.intake.setState(robot.intake.getNumBalls() == 0 ? Intake.State.OFF : Intake.State.PASSIVE_INTAKE);
-                    break;
                 }
 
                 if (!ENABLE_TESTING) {
@@ -139,21 +129,18 @@ public class Shooter extends Subsystem {
                     setRawServoPositions(targetHoodPos);
                 }
 
-                pidMotorPower = speedPidf.update(getAvgMotorSpeed());
-                if (!shooting) {
-                    // weight pid power to reduce variance once error is small enough
-                    if (Math.abs(getTargetMotorSpeed() - getAvgMotorSpeed()) < shooterParams.speedErrorToApplyWeightingThreshold)
-                        pidMotorPower = MathUtils.lerp(pidMotorPower, getTargetSpeedConstant(), getTargetSpeedConstantWeighting());
+                // quicker speed up
+                if (getAvgMotorSpeed() < getTargetMotorSpeed() - shooterParams.maxPowerSpeedErrorThreshold)
+                    setMotorPowers(0.99);
+                else {
+                    pidMotorPower = speedPidf.update(getAvgMotorSpeed());
+
+                    // weight pid power to reduce variance
+                    pidMotorPower = MathUtils.lerp(pidMotorPower, getTargetSpeedConstant(), getTargetSpeedConstantWeighting());
                     pidMotorPower = Math.max(shooterParams.minPower, pidMotorPower);
 
-                    if (robot.intake.getState() == Intake.State.ON)
+                    if (robot.intake.getState() == IntakeSimple.State.ON)
                         setMotorPowers(Math.min(pidMotorPower, intakeOnPower)); // give collector some lenience
-                    else
-                        setMotorPowers(pidMotorPower);
-                }
-                else {
-                    if (getAvgMotorSpeed() < getTargetMotorSpeed() - shooterParams.speedErrorToApplyWeightingThresholdWhenShooting)
-                        setMotorPowers(0.99);
                     else
                         setMotorPowers(pidMotorPower);
                 }
@@ -172,15 +159,9 @@ public class Shooter extends Subsystem {
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
             speedPidf.setTarget(shooterParams.nearZoneTargetSpeed);
+            robot.intake.setState(IntakeSimple.State.PASSIVE_INTAKE);
         }
     }
-
-//    public boolean isReadyToShoot() {
-//        double currentVelocity = leftMotor.getVelocity(AngleUnit.RADIANS);
-//        double velocityError = Math.abs(currentVelocity - targetSpeed);
-//        double hoodError = Math.abs(getAvgServoPosition() - targetHoodPos);
-//        return velocityError < shooterParams.velocityErrorThreshold && hoodError < shooterParams.hoodErrorThreshold;
-//    }
     private void setMotorPowers(double power) {
         if (power < shooterParams.minPower)
             throw new IllegalArgumentException("shooter power of " + power + " cannot be less than min power of " + shooterParams.minPower);
@@ -212,6 +193,7 @@ public class Shooter extends Subsystem {
     public void printInfo() {
         telemetry.addLine("===SHOOTER===");
         telemetry.addData("state", state);
+        telemetry.addData("zone", zone);
         telemetry.addLine();
         telemetry.addData("pid motor target", speedPidf.getTarget());
         telemetry.addData("pid motor power", pidMotorPower);
@@ -256,13 +238,6 @@ public class Shooter extends Subsystem {
         };
     }
 
-    public void setShooting(boolean shooting) {
-        this.shooting = shooting;
-    }
-    public boolean isShooting() {
-        return shooting;
-    }
-
     private double getTargetMotorSpeed() {
         return zone == Zone.NEAR ? shooterParams.nearZoneTargetSpeed : shooterParams.farZoneTargetSpeed;
     }
@@ -274,5 +249,9 @@ public class Shooter extends Subsystem {
     }
     public Zone getZone() {
          return zone;
+    }
+
+    public boolean canShoot() {
+        return zone == Zone.NEAR ? canShootThreeNear() : canShootThreeFar();
     }
 }

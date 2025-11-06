@@ -87,15 +87,15 @@ public class DrivePath implements Command {
     @Override
     public void execute() {
         Pose2d pose = odo.pose();
-        double x = pose.position.x, y = pose.position.y, headingRad = MathUtils.correctRad(pose.heading.toDouble()), headingDeg = Math.toDegrees(headingRad);
+        double rx = pose.position.x, ry = pose.position.y, rHeadingRad = MathUtils.correctRad(pose.heading.toDouble()), rHeadingDeg = Math.toDegrees(rHeadingRad);
 
         // finding direction that motor powers should be applied in
-        Vector2d targetDir = updateTargetDir(x, y, headingRad);
+        Vector2d targetDir = updateTargetDir(rx, ry, rHeadingRad);
 
         // note: error is calculated in field's coordinate plane
-        double xWaypointError = Math.abs(x - getCurWaypoint().x());
-        double yWaypointError = Math.abs(y - getCurWaypoint().y());
-        double headingWaypointError = headingDeg - getCurWaypoint().headingDeg();
+        double xWaypointError = Math.abs(rx - getCurWaypoint().x());
+        double yWaypointError = Math.abs(ry - getCurWaypoint().y());
+        double headingWaypointError = getCurWaypoint().headingDeg() - rHeadingDeg;
         // flip heading error if necessary
         double absHeadingWaypointError = Math.abs(headingWaypointError);
         boolean flipHeadingDirection = absHeadingWaypointError > 180;
@@ -132,9 +132,9 @@ public class DrivePath implements Command {
                 resetToNewWaypoint();
 
                 // recalculate new waypoint errors
-                xWaypointError = Math.abs(x - getCurWaypoint().x());
-                yWaypointError = Math.abs(y - getCurWaypoint().y());
-                headingWaypointError = headingDeg - MathUtils.correctDeg(getCurWaypoint().headingDeg());
+                xWaypointError = Math.abs(rx - getCurWaypoint().x());
+                yWaypointError = Math.abs(ry - getCurWaypoint().y());
+                headingWaypointError = getCurWaypoint().headingDeg() - rHeadingDeg;
                 absHeadingWaypointError = Math.abs(headingWaypointError);
                 flipHeadingDirection = absHeadingWaypointError > 180;
                 if (flipHeadingDirection)
@@ -146,26 +146,32 @@ public class DrivePath implements Command {
         double waypointDistAway = Math.sqrt(xWaypointError * xWaypointError + yWaypointError * yWaypointError);
         double totalDistanceAway = waypointDistAway + getWaypointDistanceToTarget(curWaypointIndex);
 
-        // calculate interpolated value between speed PIDs
-        double a = Math.abs(totalDistancePID.update(totalDistanceAway));
-        double b = Math.abs(waypointDistancePID.update(waypointDistAway));
-        double t = getCurParams().slowDownPercent;
-        double speed = a + (b - a) * t;
-        speed = Range.clip(speed, getCurParams().minSpeed, getCurParams().maxSpeed);
-
-        // calculate directional powers
+        // calculate translational speed
+        double speed = 0;
+        if (!inPositionTolerance) {
+            double a = Math.abs(totalDistancePID.update(totalDistanceAway));
+            double b = Math.abs(waypointDistancePID.update(waypointDistAway));
+            double t = getCurParams().slowDownPercent;
+            speed = a + (b - a) * t;
+            speed = Range.clip(speed, getCurParams().minSpeed, getCurParams().maxSpeed);
+        }
         double lateralPower = targetDir.getX() * speed * getCurParams().lateralWeight;
         double axialPower = targetDir.getY() * speed * getCurParams().axialWeight;
-        double headingPower = headingErrorPID.update(headingWaypointError);
-        double headingSign = Math.signum(headingPower);
-        headingPower = headingSign * Range.clip(Math.abs(headingPower), getCurParams().minHeadingSpeed, getCurParams().maxHeadingSpeed);
-        if (flipHeadingDirection)
-            headingPower *= -1;
+
+        // calculate angular speed (heading)
+        double headingPower = 0;
+        if (!inHeadingTolerance) {
+            headingPower = headingErrorPID.update(headingWaypointError);
+            double headingSign = Math.signum(headingPower);
+            headingPower = headingSign * Range.clip(Math.abs(headingPower), getCurParams().minHeadingSpeed, getCurParams().maxHeadingSpeed);
+            if (flipHeadingDirection)
+                headingPower *= -1;
+        }
 
         drivetrain.setDrivePowers(lateralPower, axialPower, headingPower);
 
         if (telemetry != null) {
-            telemetry.addData("current position", MathUtils.format3(x) + " ," + MathUtils.format3(y) + ", " + MathUtils.format3(headingDeg));
+            telemetry.addData("current position", MathUtils.format3(rx) + " ," + MathUtils.format3(ry) + ", " + MathUtils.format3(rHeadingDeg));
             telemetry.addData("target position", MathUtils.format3(getCurWaypoint().x()) + " ," + MathUtils.format3(getCurWaypoint().y()) + ", " + MathUtils.format3(getCurWaypoint().headingDeg()));
             telemetry.addData("target dir", MathUtils.format3(targetDir.getX()) + ", " + MathUtils.format3(targetDir.getY()));
             telemetry.addData("waypoint errors", MathUtils.format3(xWaypointError) + ", " + MathUtils.format3(yWaypointError) + ", " + MathUtils.format3(headingWaypointError));

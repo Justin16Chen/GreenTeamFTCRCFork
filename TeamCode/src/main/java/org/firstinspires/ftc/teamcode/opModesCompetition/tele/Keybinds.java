@@ -8,10 +8,12 @@ import java.util.function.Predicate;
 public class Keybinds {
     public enum D1Trigger {
         TOGGLE_INTAKE,
+        SHOOT_NEAR,
+        SHOOT_FAR,
         AUTO_AIM,
         PREPARE_FLYWHEEL,
-        SHOOT,
-        STOP_SHOOTING,
+        START_SHOOTING,
+        CONTINUE_SHOOTING,
         PARK
     }
     public enum D2Trigger {
@@ -29,11 +31,13 @@ public class Keybinds {
         gt2Triggers = new HashMap<>();
 
         gt1Triggers.put(D1Trigger.TOGGLE_INTAKE, GamepadTracker::isRTClicked);
+        gt1Triggers.put(D1Trigger.SHOOT_NEAR, GamepadTracker::isYClicked);
+        gt1Triggers.put(D1Trigger.SHOOT_FAR, GamepadTracker::isBClicked);
         gt1Triggers.put(D1Trigger.AUTO_AIM, GamepadTracker::isLBClicked);
         gt1Triggers.put(D1Trigger.PREPARE_FLYWHEEL, GamepadTracker::isRBClicked);
-        gt1Triggers.put(D1Trigger.SHOOT, GamepadTracker::isRBClicked);
-        gt1Triggers.put(D1Trigger.STOP_SHOOTING, GamepadTracker::isLBClicked);
-        gt1Triggers.put(D1Trigger.PARK, GamepadTracker::isYClicked);
+        gt1Triggers.put(D1Trigger.START_SHOOTING, GamepadTracker::isRBClicked);
+        gt1Triggers.put(D1Trigger.CONTINUE_SHOOTING, GamepadTracker::isRBPressed);
+        gt1Triggers.put(D1Trigger.PARK, GamepadTracker::isXClicked);
     }
 
 

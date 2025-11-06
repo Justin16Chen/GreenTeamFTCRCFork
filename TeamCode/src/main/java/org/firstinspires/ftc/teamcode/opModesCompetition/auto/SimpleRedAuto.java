@@ -11,9 +11,10 @@ import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.opModesCompetition.tele.EverythingTele;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
-import org.firstinspires.ftc.teamcode.robot.Intake;
+import org.firstinspires.ftc.teamcode.robot.IntakeSimple;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
 import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
@@ -64,7 +65,6 @@ public class SimpleRedAuto extends OpMode {
 
         Pose2d startPose = new Pose2d(drivePoses.startX, drivePoses.startY, Math.toRadians(drivePoses.startA));
         robot.pinpoint.setInitialPose(startPose);
-        robot.intake.setNumBalls(3);
     }
 
     @Override
@@ -96,18 +96,18 @@ public class SimpleRedAuto extends OpMode {
         Waypoint collect2Waypoint = new Waypoint(collect2Pose, collect2Tol, collect2Params);
         Waypoint shoot2Waypoint = new Waypoint(shootPose, shootTol, shoot2Params);
 
-        robot.intake.setState(Intake.State.PASSIVE_INTAKE);
+        robot.intake.setState(IntakeSimple.State.PASSIVE_INTAKE);
         robot.shooter.setState(Shooter.State.TRACK_SHOOTER_SPEED);
         new SequentialCommandGroup(
                 new DrivePath(robot.drivetrain, robot.pinpoint, shoot1Waypoint, telemetry),
                 new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.shooterParams.maxSpeedUpTime),
-                robot.shootBallCommand(false),
+                robot.shootBallCommand(true, false),
                 new DrivePath(robot.drivetrain, robot.pinpoint, collect1Waypoint, telemetry),
-                new InstantCommand(() -> robot.intake.setState(Intake.State.ON)),
+                new InstantCommand(() -> robot.intake.setState(IntakeSimple.State.ON)),
                 new DrivePath(robot.drivetrain, robot.pinpoint, collect2Waypoint, telemetry),
-                new InstantCommand(() -> robot.intake.setState(Intake.State.OFF)),
+                new InstantCommand(() -> robot.intake.setState(IntakeSimple.State.OFF)),
                 new DrivePath(robot.drivetrain, robot.pinpoint, shoot2Waypoint, telemetry),
-                robot.shootBallCommand(false),
+                robot.shootBallCommand(true, false),
                 new InstantCommand(() -> done = true)
         ).schedule();
     }
@@ -126,9 +126,14 @@ public class SimpleRedAuto extends OpMode {
              fieldOverlay.strokeLine(x, y, x + 5 * Math.cos(heading), y + 5 * Math.sin(heading));
              FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
-             telemetry.addData("num balls", robot.intake.getNumBalls());
-
              telemetry.update();
          }
+    }
+    @Override
+    public void stop() {
+        Pose2d endPose = robot.pinpoint.pose();
+        EverythingTele.startX = endPose.position.x;
+        EverythingTele.startY = endPose.position.y;
+        EverythingTele.startA = endPose.heading.toDouble();
     }
 }

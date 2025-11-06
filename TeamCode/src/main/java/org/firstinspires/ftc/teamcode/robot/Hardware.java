@@ -31,7 +31,8 @@ public class Hardware {
     public static String leftParkServoName = "leftParkServo", rightParkServoName = "rightParkServo";
     public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkWPM = 1676;
     public static String lightName = "light";
-    public static int minLightPWM = 500, maxLightPWM = 2520;
+//    public static int minLightPWM = 500, maxLightPWM = 2520; // on off light
+    public static int minLightPWM = 1000, maxLightPWM = 2000; // rgb light
 
 
     public final HardwareMap hardwareMap;
@@ -120,6 +121,12 @@ public class Hardware {
     }
     public ServoImplEx getLight() {
         ServoImplEx light = hardwareMap.get(ServoImplEx.class, lightName);
+        light.setPwmRange(new PwmControl.PwmRange(minLightPWM, maxLightPWM));
+        return light;
+    }
+
+    public ServoImplEx getRGBLight() {
+        ServoImplEx light = hardwareMap.get(ServoImplEx.class, "rgbLight");
         light.setPwmRange(new PwmControl.PwmRange(minLightPWM, maxLightPWM));
         return light;
     }

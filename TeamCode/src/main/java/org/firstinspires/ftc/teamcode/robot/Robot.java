@@ -31,7 +31,7 @@ public class Robot {
     public final BallColorSensor[] colorSensors;
     public final Drivetrain drivetrain;
     public final PinpointLocalizer pinpoint;
-    public final Intake intake;
+    public final IntakeSimple intake;
     public final Flipper flipper;
     public final Shooter shooter;
     public final Park park;
@@ -47,7 +47,7 @@ public class Robot {
         pinpoint = new PinpointLocalizer(hardware.hardwareMap, new Pose2d(0, 0, 0), telemetry);
         drivetrain = new Drivetrain(hardware, telemetry, opmodeType);
         subsystems.add(drivetrain);
-        intake = new Intake(hardware, telemetry);
+        intake = new IntakeSimple(hardware, telemetry);
         subsystems.add(intake);
         shooter = new Shooter(hardware, telemetry);
         subsystems.add(shooter);
@@ -99,19 +99,26 @@ public class Robot {
             subsystem.updateState();
     }
 
-    public Command shootBallCommand(boolean returnToPassiveSpeed) {
+    public Command shootBallCommand(boolean preciseIntaking, boolean returnToPassiveSpeed) {
         return new SequentialCommandGroup(
+                new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
+                new WaitCommand(Flipper.rotationTimeMs),
+                new InstantCommand(() -> intake.setState(preciseIntaking ?
+                        IntakeSimple.State.FEED_SHOOTER_PRECISE :
+                        IntakeSimple.State.FEED_SHOOTER_TELE_TOGGLE)),
+                new WaitUntilCommand(
+                        () -> intake.getState() == IntakeSimple.State.OFF,
+                        preciseIntaking ?
+                                Shooter.maxShootTimeMs :
+                                Double.MAX_VALUE),
                 new InstantCommand(() -> {
-                    shooter.setShooting(true);
-                    flipper.setState(Flipper.State.OPEN);
+                    intake.setState(IntakeSimple.State.OFF);
+                    flipper.setState(Flipper.State.CLOSED);
                 }),
                 new WaitCommand(Flipper.rotationTimeMs),
-                new InstantCommand(() -> intake.setState(Intake.State.FEED_SHOOTER)),
-                new WaitUntilCommand(() -> intake.getState() != Intake.State.FEED_SHOOTER, Shooter.maxShootTimeMs),
-                new InstantCommand(() -> flipper.setState(Flipper.State.CLOSED)),
-                new WaitCommand(Flipper.rotationTimeMs),
-                returnToPassiveSpeed ? new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) : new InstantCommand(() -> {}),
-                new InstantCommand(() -> shooter.setShooting(false))
+                returnToPassiveSpeed ?
+                        new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) :
+                        new InstantCommand(() -> {})
         );
     }
 }
