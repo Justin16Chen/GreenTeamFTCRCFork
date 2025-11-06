@@ -37,11 +37,11 @@ public class Shooter extends Subsystem {
         public double maxSpeedUpTime = 5;
         public double minPower = -0.2;
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.15;
-        public double maxPowerSpeedErrorThreshold = 20;
-        public double nearZoneTargetSpeed = 320, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
-        public double nearZoneMinSpeed = 290;
-        public double farZoneTargetSpeed = 320, farZoneTargetConstantWeighting = 0.7, farZoneTargetConstant = 0.93;
-        public double farZoneMinSpeed = 300;
+        public double maxPowerSpeedErrorThreshold = 30;
+        public double nearZoneTargetSpeed = 400, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
+        public double nearZoneMinSpeed = 370;
+        public double farZoneTargetSpeed = 400, farZoneTargetConstantWeighting = 0.7, farZoneTargetConstant = 0.93;
+        public double farZoneMinSpeed = 370;
     }
 
     public static class HoodParams {
