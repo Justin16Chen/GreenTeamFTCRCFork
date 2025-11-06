@@ -102,12 +102,12 @@ public class Drivetrain extends Subsystem {
         }
         else if (state == State.CORRECT_TO_SHOOTING_POSITION) {
             // find desired position (closest point on circle with radius of desired shooting distance)
-            double goalX = robot.alliance == Alliance.BLUE ? Field.blueGoalX : Field.redGoalX;
+            Vector2d goalPosition = new Vector2d(robot.alliance == Alliance.BLUE ? Field.blueGoalX : Field.redGoalX, Field.goalY);
             double rx = robot.pinpoint.pose().position.x, ry = robot.pinpoint.pose().position.y;
-            Vector2d goalToRobot = new Vector2d(rx - goalX, ry - Field.goalY);
+            Vector2d goalToRobot = new Vector2d(rx - goalPosition.x, ry - Field.goalY);
             goalToRobot = goalToRobot.div(Math.hypot(goalToRobot.x, goalToRobot.y));
-            Vector2d desiredPosition = goalToRobot.times(Shooter.correctiveDriveParams.desiredNearShootDistance);
-            double desiredHeading = Math.atan2(Field.goalY - desiredPosition.y, goalX - desiredPosition.y);
+            Vector2d desiredPosition = goalPosition.plus(goalToRobot.times(Shooter.correctiveDriveParams.desiredNearShootDistance));
+            double desiredHeading = Math.atan2(Field.goalY - desiredPosition.y, goalPosition.y - desiredPosition.y);
             Pose2d desiredPose = new Pose2d(desiredPosition, desiredHeading);
 
             // create drive path
@@ -119,6 +119,15 @@ public class Drivetrain extends Subsystem {
             Waypoint waypoint = new Waypoint(desiredPose, tolerance, pathParams);
             correctiveDrive = new DrivePath(this, robot.pinpoint, waypoint, telemetry);
             correctiveDrive.schedule();
+
+            robot.pinpoint.printInfo();
+            telemetry.addLine();
+            telemetry.addData("goalX", goalPosition.x);
+            telemetry.addData("goalY", goalPosition.y);
+            telemetry.addData("goal to robot angle", MathUtils.format3(Math.toDegrees(Math.atan2(goalToRobot.y, goalToRobot.x))));
+            telemetry.addData("desired pose", MathUtils.format3(desiredPose.position.x) + ", " + MathUtils.format3(desiredPose.position.y) + ", " + MathUtils.format3(Math.toDegrees(desiredPose.heading.toDouble())));
+
+            telemetry.update();
         }
     }
 

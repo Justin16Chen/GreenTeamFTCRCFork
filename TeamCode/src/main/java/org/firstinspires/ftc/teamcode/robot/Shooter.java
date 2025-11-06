@@ -45,7 +45,7 @@ public class Shooter extends Subsystem {
     public static class CorrectiveDriveParams {
         public double desiredNearShootDistance = 55.93;
         public double distTol = 1, headingTol = 2;
-        public double[] drivePIDs = { 0.07, 0, 0.01, 0.2, 0, 0.01 };
+        public double[] drivePIDs = { 0.07, 0, 0.01, 0.15, 0, 0.01 };
         public double minSpeed = 0.5;
         public double maxSpeed = 0.8, maxHeadingSpeed = 0.8;
         public double nearZoneShootX = 27.5, nearZoneShootY = 28.5, nearZoneShootAngle = 44;
