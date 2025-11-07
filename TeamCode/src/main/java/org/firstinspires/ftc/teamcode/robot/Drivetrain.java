@@ -185,6 +185,18 @@ public class Drivetrain extends Subsystem {
     public Command headingLockCommand() {
         return new Command() {
             @Override
+            public void execute() {
+                setDrivePowers(0, 0, getHeadingLockPower());
+            }
+            @Override
+            public boolean isFinished() {
+                return headingWithinShootingTolerance();
+            }
+            @Override
+            public void end(boolean interrupted) {
+                setDrivePowers(0, 0, 0);
+            }
+            @Override
             public Set<com.arcrobotics.ftclib.command.Subsystem> getRequirements() {
                 return Collections.emptySet();
             }

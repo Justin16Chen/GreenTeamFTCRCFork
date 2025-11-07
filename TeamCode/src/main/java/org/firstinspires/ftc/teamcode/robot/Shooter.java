@@ -40,7 +40,7 @@ public class Shooter extends Subsystem {
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.15;
         public double maxPowerSpeedErrorThreshold = 10;
         public double nearZoneTargetSpeed = 390, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
-        public double nearZoneMinSpeed = 350;
+        public double nearZoneMinSpeed = 340;
         public double farZoneTargetSpeed = 400, farZoneTargetConstantWeighting = 0.7, farZoneTargetConstant = 0.93;
         public double farZoneMinSpeed = 370;
     }
