@@ -104,7 +104,7 @@ public class DrivePath implements Command {
 
         // tolerance
         boolean inPositionTolerance = xWaypointError <= getCurWaypoint().tolerance.xTol && yWaypointError <= getCurWaypoint().tolerance.yTol;
-        boolean inHeadingTolerance = headingWaypointError <= Math.toDegrees(getCurWaypoint().tolerance.headingRadTol);
+        boolean inHeadingTolerance = Math.abs(headingWaypointError) <= Math.toDegrees(getCurWaypoint().tolerance.headingRadTol);
 
         // pass position
 //        double dot = -1;
@@ -139,6 +139,10 @@ public class DrivePath implements Command {
                 flipHeadingDirection = absHeadingWaypointError > 180;
                 if (flipHeadingDirection)
                     headingWaypointError = Math.signum(headingWaypointError) * (360 - absHeadingWaypointError);
+
+                // recalculate new tolerances
+                inPositionTolerance = xWaypointError <= getCurWaypoint().tolerance.xTol && yWaypointError <= getCurWaypoint().tolerance.yTol;
+                inHeadingTolerance = Math.abs(headingWaypointError) <= Math.toDegrees(getCurWaypoint().tolerance.headingRadTol);
             }
         }
 
@@ -163,7 +167,7 @@ public class DrivePath implements Command {
         if (!inHeadingTolerance) {
             headingPower = headingErrorPID.update(headingWaypointError);
             double headingSign = Math.signum(headingPower);
-            headingPower = headingSign * Range.clip(Math.abs(headingPower), getCurParams().minHeadingSpeed, getCurParams().maxHeadingSpeed);
+            headingPower = -headingSign * Range.clip(Math.abs(headingPower), getCurParams().minHeadingSpeed, getCurParams().maxHeadingSpeed);
             if (flipHeadingDirection)
                 headingPower *= -1;
         }

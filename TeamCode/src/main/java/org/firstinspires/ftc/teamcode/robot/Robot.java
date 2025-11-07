@@ -31,7 +31,7 @@ public class Robot {
     public final BallColorSensor[] colorSensors;
     public final Drivetrain drivetrain;
     public final PinpointLocalizer pinpoint;
-    public final IntakeSimple intake;
+    public final Intake intake;
     public final Flipper flipper;
     public final Shooter shooter;
     public final Park park;
@@ -48,7 +48,7 @@ public class Robot {
         pinpoint = new PinpointLocalizer(hardware.hardwareMap, new Pose2d(0, 0, 0), telemetry);
         drivetrain = new Drivetrain(hardware, telemetry, opmodeType);
         subsystems.add(drivetrain);
-        intake = new IntakeSimple(hardware, telemetry);
+        intake = new Intake(hardware, telemetry);
         subsystems.add(intake);
         shooter = new Shooter(hardware, telemetry);
         subsystems.add(shooter);
@@ -103,18 +103,19 @@ public class Robot {
 
     public Command shootBallCommand(boolean preciseIntaking, boolean returnToPassiveSpeed) {
         return new SequentialCommandGroup(
+                new InstantCommand(() -> intake.setState(Intake.State.PASSIVE_INTAKE)),
                 new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
                 new WaitCommand(Flipper.rotationTimeMs),
                 new InstantCommand(() -> intake.setState(preciseIntaking ?
-                        IntakeSimple.State.FEED_SHOOTER_PRECISE :
-                        IntakeSimple.State.FEED_SHOOTER_TELE_TOGGLE)),
+                        Intake.State.FEED_SHOOTER_PRECISE :
+                        Intake.State.FEED_SHOOTER_TELE_TOGGLE)),
                 new WaitUntilCommand(
-                        () -> intake.getState() == IntakeSimple.State.OFF,
+                        () -> intake.getState() == Intake.State.OFF,
                         preciseIntaking ?
                                 Shooter.maxShootTimeMs :
                                 Double.MAX_VALUE),
                 new InstantCommand(() -> {
-                    intake.setState(IntakeSimple.State.OFF);
+                    intake.setState(Intake.State.OFF);
                     flipper.setState(Flipper.State.CLOSED);
                 }),
                 new WaitCommand(Flipper.rotationTimeMs),

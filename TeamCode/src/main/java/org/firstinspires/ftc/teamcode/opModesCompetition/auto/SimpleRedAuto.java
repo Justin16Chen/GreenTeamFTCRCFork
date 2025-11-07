@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.EverythingTele;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
-import org.firstinspires.ftc.teamcode.robot.IntakeSimple;
+import org.firstinspires.ftc.teamcode.robot.Intake;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
 import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
@@ -32,7 +32,7 @@ public class SimpleRedAuto extends OpMode {
     public static double fieldRotation = 90;
     public static class DrivePoses {
         public double startX = 31.15, startY = 62, startA = 90;
-        public double shootX = 27.5, shootY = 28.5, shootA = 44;
+        public double shootX = 27.5, shootY = 27.5, shootA = 44;
         public double collectX1 = 28, collectY1 = 13, collectA1 = 0;
         public double collectX2 = 52, collectY2 = 13, collectA2 = 0;
     }
@@ -96,16 +96,16 @@ public class SimpleRedAuto extends OpMode {
         Waypoint collect2Waypoint = new Waypoint(collect2Pose, collect2Tol, collect2Params);
         Waypoint shoot2Waypoint = new Waypoint(shootPose, shootTol, shoot2Params);
 
-        robot.intake.setState(IntakeSimple.State.PASSIVE_INTAKE);
+        robot.intake.setState(Intake.State.PASSIVE_INTAKE);
         robot.shooter.setState(Shooter.State.TRACK_SHOOTER_SPEED);
         new SequentialCommandGroup(
                 new DrivePath(robot.drivetrain, robot.pinpoint, shoot1Waypoint, telemetry),
                 new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.shooterParams.maxSpeedUpTime),
                 robot.shootBallCommand(true, false),
                 new DrivePath(robot.drivetrain, robot.pinpoint, collect1Waypoint, telemetry),
-                new InstantCommand(() -> robot.intake.setState(IntakeSimple.State.ON)),
+                new InstantCommand(() -> robot.intake.setState(Intake.State.ON)),
                 new DrivePath(robot.drivetrain, robot.pinpoint, collect2Waypoint, telemetry),
-                new InstantCommand(() -> robot.intake.setState(IntakeSimple.State.OFF)),
+                new InstantCommand(() -> robot.intake.setState(Intake.State.OFF)),
                 new DrivePath(robot.drivetrain, robot.pinpoint, shoot2Waypoint, telemetry),
                 robot.shootBallCommand(true, false),
                 new InstantCommand(() -> done = true)

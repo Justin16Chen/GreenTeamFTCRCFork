@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.opModesTesting.ShooterSpeedRecorder;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
 import org.firstinspires.ftc.teamcode.utils.misc.PowerEquation;
@@ -37,9 +38,9 @@ public class Shooter extends Subsystem {
         public double maxSpeedUpTime = 5;
         public double minPower = -0.2;
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.15;
-        public double maxPowerSpeedErrorThreshold = 30;
-        public double nearZoneTargetSpeed = 400, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
-        public double nearZoneMinSpeed = 370;
+        public double maxPowerSpeedErrorThreshold = 10;
+        public double nearZoneTargetSpeed = 390, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
+        public double nearZoneMinSpeed = 350;
         public double farZoneTargetSpeed = 400, farZoneTargetConstantWeighting = 0.7, farZoneTargetConstant = 0.93;
         public double farZoneMinSpeed = 370;
     }
@@ -48,7 +49,10 @@ public class Shooter extends Subsystem {
         public double defaultPosition = 0.8;
         public double downPosition = 0.76, upPosition = 0.3;
         public double manualChangeAmount = 0.01;
-        public PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
+
+//        public PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
+//        public LineEquation hoodEquation = new LineEquation(-0.00270229, 1.67168);
+        public LineEquation hoodEquation = new LineEquation(-0.00268345, 1.64932);
     }
     public static ShootingTuning shooterParams = new ShootingTuning();
     public static HoodParams hoodParams = new HoodParams();
@@ -139,7 +143,7 @@ public class Shooter extends Subsystem {
                     pidMotorPower = MathUtils.lerp(pidMotorPower, getTargetSpeedConstant(), getTargetSpeedConstantWeighting());
                     pidMotorPower = Math.max(shooterParams.minPower, pidMotorPower);
 
-                    if (robot.intake.getState() == IntakeSimple.State.ON)
+                    if (robot.intake.getState() == Intake.State.ON)
                         setMotorPowers(Math.min(pidMotorPower, intakeOnPower)); // give collector some lenience
                     else
                         setMotorPowers(pidMotorPower);
@@ -159,7 +163,7 @@ public class Shooter extends Subsystem {
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
             speedPidf.setTarget(shooterParams.nearZoneTargetSpeed);
-            robot.intake.setState(IntakeSimple.State.PASSIVE_INTAKE);
+            robot.intake.setState(Intake.State.PASSIVE_INTAKE);
         }
     }
     private void setMotorPowers(double power) {

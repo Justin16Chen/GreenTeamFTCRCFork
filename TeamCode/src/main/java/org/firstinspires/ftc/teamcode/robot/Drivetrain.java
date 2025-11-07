@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.arcrobotics.ftclib.command.Command;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.Range;
 
@@ -18,6 +19,9 @@ import org.firstinspires.ftc.teamcode.utils.pidDrive.PathParams;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.Tolerance;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.Waypoint;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
+
+import java.util.Collections;
+import java.util.Set;
 
 @Config
 public class Drivetrain extends Subsystem {
@@ -178,38 +182,12 @@ public class Drivetrain extends Subsystem {
     public boolean headingWithinShootingTolerance() {
         return getHeadingShootError() < headingLockParams.headingTol;
     }
-    private void driveToDesiredPose() {
-        double x = robot.alliance == Alliance.RED ? Field.redNearZoneShootX : Field.blueNearZoneShootX;
-        double angle = robot.alliance == Alliance.RED ? Field.redNearZoneShootAngle : Field.blueNearZoneShootAngle;
-        Pose2d desiredPose = new Pose2d(x, Field.nearZoneShootY, angle);
-
-        // create drive path
-        Tolerance tolerance = new Tolerance(correctiveDriveParams.distTol, Math.toRadians(correctiveDriveParams.headingTol));
-        PathParams pathParams = new PathParams(correctiveDriveParams.drivePIDs);
-        pathParams.minSpeed = correctiveDriveParams.minSpeed;
-        pathParams.maxSpeed = correctiveDriveParams.maxSpeed;
-        pathParams.maxHeadingSpeed = correctiveDriveParams.maxHeadingSpeed;
-        Waypoint waypoint = new Waypoint(desiredPose, tolerance, pathParams);
-        DrivePath correctiveDrive = new DrivePath(this, robot.pinpoint, waypoint, telemetry);
-        correctiveDrive.schedule();
-
-        robot.pinpoint.printInfo();
-        telemetry.addLine();
-        telemetry.addData("desired pose", MathUtils.format3(desiredPose.position.x) + ", " + MathUtils.format3(desiredPose.position.y) + ", " + MathUtils.format3(Math.toDegrees(desiredPose.heading.toDouble())));
-        telemetry.update();
-
-        // old math
-//        Vector2d goalPosition = new Vector2d(robot.alliance == Alliance.BLUE ? Field.blueGoalX : Field.redGoalX, Field.goalY);
-//        double rx = robot.pinpoint.pose().position.x, ry = robot.pinpoint.pose().position.y;
-//        Vector2d goalToRobot = new Vector2d(rx - goalPosition.x, ry - Field.goalY);
-//        goalToRobot = goalToRobot.div(Math.hypot(goalToRobot.x, goalToRobot.y));
-//        Vector2d desiredPosition = goalPosition.plus(goalToRobot.times(Shooter.correctiveDriveParams.desiredNearShootDistance));
-//        double desiredHeading = Math.atan2(Field.goalY - desiredPosition.y, goalPosition.y - desiredPosition.y);
-//
-//        telemetry.addData("goalX", goalPosition.x);
-//        telemetry.addData("goalY", goalPosition.y);
-//        telemetry.addData("goal to robot angle", MathUtils.format3(Math.toDegrees(Math.atan2(goalToRobot.y, goalToRobot.x))));
-//
-//        return new Pose2d(desiredPosition, desiredHeading);
+    public Command headingLockCommand() {
+        return new Command() {
+            @Override
+            public Set<com.arcrobotics.ftclib.command.Subsystem> getRequirements() {
+                return Collections.emptySet();
+            }
+        };
     }
 }

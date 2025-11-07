@@ -22,11 +22,12 @@ public class RGBLight extends Subsystem {
     @Override
     public void declareHardware() {
         light = hardware.getRGBLight();
+        light.setPosition(params.white);
     }
 
     @Override
     public void updateState() {
-        if (robot.intake.getState() == IntakeSimple.State.FEED_SHOOTER_PRECISE) {
+        if (robot.intake.getState() == Intake.State.FEED_SHOOTER_PRECISE) {
             if (robot.intake.getOfficialNumBalls() == 3)
                 light.setPosition(params.white);
             else if (robot.intake.getOfficialNumBalls() == 2)
