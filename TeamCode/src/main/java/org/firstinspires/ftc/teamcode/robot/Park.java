@@ -10,21 +10,27 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 public class Park extends Subsystem {
     public static double stowPosition = 0.01, parkPosition = 0.99;
     private ServoImplEx leftServo, rightServo;
+    private boolean up;
     public Park(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
+        this.up = false;
     }
 
     @Override
     public void declareHardware() {
         leftServo = hardware.getLeftParkServo();
         rightServo = hardware.getRightParkServo();
+        setServoPositions(stowPosition);
     }
 
     @Override
     public void updateState() {
-        if (keybinds.check(Keybinds.D1Trigger.PARK)) {
-            setServoPositions(parkPosition);
 
+        if (keybinds.check(Keybinds.D1Trigger.PARK)) {
+            up = !up;
+
+            setServoPositions(up ? parkPosition : stowPosition);
+            
             if (robot != null)
                 robot.shooter.setState(Shooter.State.OFF);
         }

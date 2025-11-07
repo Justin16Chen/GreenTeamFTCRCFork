@@ -167,6 +167,14 @@ public class NineBallAuto extends OpMode {
                 new DrivePath(robot.drivetrain, robot.pinpoint, collect2DriveThruWaypoint, telemetry),
                 new InstantCommand(() -> robot.intake.setState(Intake.State.OFF)),
 
+                // shoot 3rd 3
+                new DrivePath(robot.drivetrain, robot.pinpoint, shoot2Waypoint, telemetry),
+                new ParallelCommandGroup(
+                        new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.shooterParams.maxSpeedUpTime),
+                        robot.drivetrain.headingLockCommand()
+                ),
+                robot.shootBallCommand(true, true),
+
                 // end everything
                 new InstantCommand(() -> {
                     done = true;

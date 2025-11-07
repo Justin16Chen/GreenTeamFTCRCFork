@@ -11,26 +11,29 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.BallColorSensor;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
-@TeleOp(name="Everything Tele", group = "Competition")
 @Config
 public class EverythingTele extends ParentOpMode {
     public static double startX = 0, startY = 0, startA = 0;
     private Robot robot;
+    public final Alliance alliance;
 
+    public EverythingTele(Alliance alliance) {
+        this.alliance = alliance;
+    }
     @Override
     public void initiation() {
         CommandScheduler.getInstance().reset();
 
-        robot = new Robot(hardware, telemetry, OpmodeType.TELE);
+        robot = new Robot(hardware, telemetry, OpmodeType.TELE, alliance);
         robot.declareHardware();
         robot.setInputInfo(new Keybinds(g1, g2));
         robot.pinpoint.setInitialPose(new Pose2d(startX, startY, startA));
-
     }
 
     @Override
