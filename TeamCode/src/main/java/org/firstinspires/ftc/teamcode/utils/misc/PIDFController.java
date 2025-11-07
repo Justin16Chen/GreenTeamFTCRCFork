@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.util.Range;
 public class PIDFController {
 
     private double target;
-    private double kP, kI, kD, kF;
+    public double kP, kI, kD, kF;
     private double integral;
     private boolean shouldReset;
 

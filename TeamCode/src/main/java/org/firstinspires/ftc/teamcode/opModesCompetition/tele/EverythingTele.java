@@ -39,19 +39,19 @@ public class EverythingTele extends ParentOpMode {
         robot.update();
         CommandScheduler.getInstance().run();
 
-//        telemetry.addData("alliance", robot.alliance);
-//        telemetry.addLine("=====SUBSYSTEMS=====");
-//        for (Subsystem subsystem : robot.subsystems) {
-//            subsystem.printInfo();
-//            telemetry.addLine();
-//        }
-//
-//        telemetry.addLine("=====SENSORS=====");
-//        robot.pinpoint.printInfo();
-//        telemetry.addLine();
-//        for (BallColorSensor colorSensor : robot.colorSensors)
-//            colorSensor.printInfo();
-//
-//        telemetry.update();
+        telemetry.addData("alliance", robot.alliance);
+        telemetry.addLine("=====SUBSYSTEMS=====");
+        for (Subsystem subsystem : robot.subsystems) {
+            subsystem.printInfo();
+            telemetry.addLine();
+        }
+
+        telemetry.addLine("=====SENSORS=====");
+        robot.pinpoint.printInfo();
+        telemetry.addLine();
+        for (BallColorSensor colorSensor : robot.colorSensors)
+            colorSensor.printInfo();
+
+        telemetry.update();
     }
 }

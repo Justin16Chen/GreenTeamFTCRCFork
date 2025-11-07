@@ -119,14 +119,9 @@ public class Hardware {
         servo.setPwmRange(new PwmControl.PwmRange(flipperClosePWM, flipperOpenPWM));
         return servo;
     }
-    public ServoImplEx getLight() {
-        ServoImplEx light = hardwareMap.get(ServoImplEx.class, lightName);
-        light.setPwmRange(new PwmControl.PwmRange(minLightPWM, maxLightPWM));
-        return light;
-    }
 
     public ServoImplEx getRGBLight() {
-        ServoImplEx light = hardwareMap.get(ServoImplEx.class, "rgbLight");
+        ServoImplEx light = hardwareMap.get(ServoImplEx.class, lightName);
         light.setPwmRange(new PwmControl.PwmRange(minLightPWM, maxLightPWM));
         return light;
     }

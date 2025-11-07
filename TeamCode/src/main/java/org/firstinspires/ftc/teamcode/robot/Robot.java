@@ -35,6 +35,7 @@ public class Robot {
     public final Flipper flipper;
     public final Shooter shooter;
     public final Park park;
+    public final RGBLight light;
     public Robot(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType) {
         this(hardware, telemetry, opmodeType, defaultAlliance);
     }
@@ -55,6 +56,7 @@ public class Robot {
         subsystems.add(flipper);
         park = new Park(hardware, telemetry);
         subsystems.add(park);
+        light = new RGBLight(hardware, telemetry);
 
         colorSensors = new BallColorSensor[3];
         BallColorSensor backColorSensor = new BallColorSensor(hardware, telemetry, Hardware.backColorSensorName, false);

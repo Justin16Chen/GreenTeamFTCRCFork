@@ -29,8 +29,8 @@ public class ShooterSpeedRecorder extends OpMode {
 
         telemetry.addData("reset speeds", "Y");
         telemetry.addLine();
-        for (int i=0; i<data.length; i++)
-            telemetry.addLine("time: " + Math.round(data[i][0]) + ", speed: " + Math.round(data[i][1]) + ", power: " + MathUtils.format3(data[i][2]) + ", hood pos: " + MathUtils.format3(data[i][3]));
+        for (double[] datum : data)
+            telemetry.addLine("time: " + MathUtils.format3(datum[0]) + ", speed: " + Math.round(datum[1]) + ", power: " + MathUtils.format3(datum[2]) + ", hood: " + MathUtils.format3(datum[3]));
 
         telemetry.update();
     }

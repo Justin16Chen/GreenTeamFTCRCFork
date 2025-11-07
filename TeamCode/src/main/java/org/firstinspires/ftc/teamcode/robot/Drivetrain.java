@@ -29,8 +29,10 @@ public class Drivetrain extends Subsystem {
         public double maxSpeed = 0.8, maxHeadingSpeed = 0.8;
     }
     public static class HeadingLockParams {
+        public boolean testing = false;
         public double slowAxialSpeed = 0.7, slowLateralSpeed = 0.85;
-        public double kp = 0.02, ki = 0, kd = 0, kf = 0.;
+        public double bigKp = -0.7, bigKd = 0.01, smallKp = -2, smallKd = 0;
+        public double smallHeadingThreshold = 10;
         public double headingTol = 1;
     }
     public static CorrectiveDriveParams correctiveDriveParams = new CorrectiveDriveParams();
@@ -40,7 +42,7 @@ public class Drivetrain extends Subsystem {
         TELE_DRIVE
     }
     public static double lateralScaling = 3, axialScaling = 3, headingScaling = 3;
-    public static double minTurnSpeed = 0.3, correctiveStrafeHeadingMultiplier = 0.15;
+    public static double minTurnSpeed = 0.3, correctiveStrafeHeadingMultiplier = -0.15;
     private final State state;
     private DcMotorEx fr, fl, br, bl;
     private final PIDFController headingLockPid;
@@ -48,7 +50,7 @@ public class Drivetrain extends Subsystem {
     public Drivetrain(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType) {
         super(hardware, telemetry);
         this.state = opmodeType == OpmodeType.TELE ? State.TELE_DRIVE : State.AUTONOMOUS;
-        headingLockPid = new PIDFController(headingLockParams.kp, headingLockParams.ki, headingLockParams.kd, headingLockParams.kf);
+        headingLockPid = new PIDFController(headingLockParams.bigKp, 0, headingLockParams.bigKd, 0);
         headingLockPid.setTarget(0);
         headingLockPid.setOutputBounds(-1, 1);
     }
@@ -76,8 +78,12 @@ public class Drivetrain extends Subsystem {
                     // correct heading power based off of new slowed-down lateral speed
                     double headingPower = getHeadingLockPower();
                     headingPower += linearPowers[0] * correctiveStrafeHeadingMultiplier;
+                    headingPower = Range.clip(headingPower, -1, 1);
 
-                    setDrivePowers(linearPowers[0], linearPowers[1], headingPower);
+                    if (headingLockParams.testing)
+                        setDrivePowers(0, 0, 0);
+                    else
+                        setDrivePowers(linearPowers[0], linearPowers[1], headingPower);
                 }
                 else {
                     // correct heading power based off normal lateral speed
@@ -102,6 +108,7 @@ public class Drivetrain extends Subsystem {
         double headingSign = Math.signum(g1.getRightStickX());
         double heading = headingSign * -Math.max(minTurnSpeed, Math.abs(Math.pow(g1.getRightStickX(), headingScaling)));
         double correctiveStrafeHeading = lateral * correctiveStrafeHeadingMultiplier;
+
         return Range.clip(heading + correctiveStrafeHeading, -1, 1);
     }
 
@@ -134,13 +141,25 @@ public class Drivetrain extends Subsystem {
     private double getHeadingLockPower() {
         double headingError = getHeadingShootError();
         double absHeadingError = Math.abs(headingError);
+        if (absHeadingError < Math.toRadians(headingLockParams.headingTol))
+            return 0;
         boolean flipHeadingPower = absHeadingError > Math.PI;
         if (flipHeadingPower)
-            headingError = Math.signum(headingError) * (360 - absHeadingError);
+            headingError = Math.signum(headingError) * (Math.PI * 2 - absHeadingError);
+
+        if (absHeadingError > Math.toRadians(headingLockParams.smallHeadingThreshold))
+            headingLockPid.setPIDValues(headingLockParams.bigKp, 0, headingLockParams.bigKd, 0);
+        else
+            headingLockPid.setPIDValues(headingLockParams.smallKp, 0, headingLockParams.smallKd, 0);
 
         double headingPower = headingLockPid.update(headingError);
         if (flipHeadingPower)
             headingPower *= -1;
+
+        telemetry.addData("flip power", flipHeadingPower);
+        telemetry.addData("kp", headingLockPid.kP);
+        telemetry.addData("error", Math.toDegrees(headingError));
+        telemetry.addData("power", headingPower);
 
         return headingPower;
     }
@@ -149,8 +168,12 @@ public class Drivetrain extends Subsystem {
         double nextY = robot.pinpoint.pose().position.y + robot.pinpoint.driver.getVelY(DistanceUnit.INCH);
         double goalX = robot.alliance == Alliance.RED ? Field.redGoalX : Field.blueGoalX;
         double desiredAngle = Math.atan2(Field.goalY - nextY, goalX - nextX);
+        double currentAngle = robot.pinpoint.pose().heading.toDouble();
 
-        return desiredAngle - robot.pinpoint.pose().heading.toDouble();
+        telemetry.addData("desired angle", Math.round(Math.toDegrees(desiredAngle)));
+        telemetry.addData("current angle", Math.round(Math.toDegrees(currentAngle)));
+
+        return desiredAngle - currentAngle;
     }
     public boolean headingWithinShootingTolerance() {
         return getHeadingShootError() < headingLockParams.headingTol;

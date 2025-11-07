@@ -72,10 +72,9 @@ public class ShooterTest extends ParentOpMode {
 
         // joystick increments
         shooterPower -= g1.getLeftStickY() * joystickChangeIncrement;
-        shooterPower = Math.max(shooterPower, 0); // don't allow negative power so we don't cook motor axle adapters again
 
         // reset
-        if (g1.isAClicked())
+        if (gamepad1.a)
             shooterPower = 0;
         shooterPower = Range.clip(shooterPower, -0.99, 0.99);
         setShooterMotorPower(shooterPower);

@@ -74,6 +74,10 @@ public class IntakeSimple extends Subsystem {
                 break;
         }
     }
+    public int getOfficialNumBalls() {
+        return officialNumBalls;
+    }
+
     public State getState() { return state; }
     public void setState(State newState) {
         if (state == newState)
@@ -81,16 +85,28 @@ public class IntakeSimple extends Subsystem {
 
         state = newState;
 
-        if (state == State.ON)
+        if (state == State.ON) {
             motor.setPower(collectPower);
-        else if (state == State.OFF)
+            turnOnSensors(false);
+        }
+        else if (state == State.OFF) {
             motor.setPower(0);
-        else if (state == State.PASSIVE_INTAKE)
+            turnOnSensors(false);
+        }
+        else if (state == State.PASSIVE_INTAKE) {
             motor.setPower(passivePower);
+            turnOnSensors(false);
+        }
         else if (state == State.FEED_SHOOTER_PRECISE) {
             officialNumBalls = -1;
             motor.setPower(feedShooterPower);
+            turnOnSensors(true);
         }
+    }
+
+    private void turnOnSensors(boolean turnedOn) {
+        for (BallColorSensor sensor : robot.colorSensors)
+            sensor.setTurnedOn(turnedOn);
     }
 
     public void printInfo() {

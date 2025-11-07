@@ -46,7 +46,7 @@ public class Shooter extends Subsystem {
 
     public static class HoodParams {
         public double defaultPosition = 0.8;
-        public double downPosition = 0.88, upPosition = 0.4;
+        public double downPosition = 0.76, upPosition = 0.3;
         public double manualChangeAmount = 0.01;
         public PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
     }
@@ -54,7 +54,7 @@ public class Shooter extends Subsystem {
     public static HoodParams hoodParams = new HoodParams();
     public static boolean ENABLE_TESTING = false;
     public static long maxShootTimeMs = 5000;
-    public static double passivePower = 0.3, intakeOnPower = 0.75;
+    public static double passivePower = 0, intakeOnPower = 0.75;
 
     public enum State {
         OFF,
@@ -224,7 +224,7 @@ public class Shooter extends Subsystem {
             public void execute() {
                 if (timer.milliseconds() - lastTime > ShooterSpeedRecorder.recordIntervalMs && num < ShooterSpeedRecorder.recordAmount) {
                     lastTime = timer.milliseconds();
-                    ShooterSpeedRecorder.data[num][0] = timer.milliseconds();
+                    ShooterSpeedRecorder.data[num][0] = timer.seconds();
                     ShooterSpeedRecorder.data[num][1] = getAvgMotorSpeed();
                     ShooterSpeedRecorder.data[num][2] = pidMotorPower;
                     ShooterSpeedRecorder.data[num][3] = getAvgServoPosition();

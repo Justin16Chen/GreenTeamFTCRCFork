@@ -33,7 +33,7 @@ public class Keybinds {
         gt1Triggers.put(D1Trigger.TOGGLE_INTAKE, GamepadTracker::isRTClicked);
         gt1Triggers.put(D1Trigger.SHOOT_NEAR, GamepadTracker::isYClicked);
         gt1Triggers.put(D1Trigger.SHOOT_FAR, GamepadTracker::isBClicked);
-        gt1Triggers.put(D1Trigger.AUTO_AIM, GamepadTracker::isLBClicked);
+        gt1Triggers.put(D1Trigger.AUTO_AIM, GamepadTracker::isLTPressed);
         gt1Triggers.put(D1Trigger.PREPARE_FLYWHEEL, GamepadTracker::isRBClicked);
         gt1Triggers.put(D1Trigger.START_SHOOTING, GamepadTracker::isRBClicked);
         gt1Triggers.put(D1Trigger.CONTINUE_SHOOTING, GamepadTracker::isRBPressed);
