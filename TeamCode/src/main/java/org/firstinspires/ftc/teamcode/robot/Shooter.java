@@ -15,11 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.commands.SimpleCommand;
 import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
-import org.firstinspires.ftc.teamcode.utils.misc.PowerEquation;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
-
-import java.util.Collections;
-import java.util.Set;
 
 @Config
 public class Shooter extends Subsystem {
@@ -86,6 +82,7 @@ public class Shooter extends Subsystem {
         timer = new ElapsedTime();
         zone = Zone.NEAR;
         targetSpeed = shooterParams.nearZoneTargetSpeed;
+        ShooterSpeedRecorder.resetData();
     }
 
     @Override
@@ -224,22 +221,24 @@ public class Shooter extends Subsystem {
             private double lastTime = 0;
             @Override
             public void initialize() {
-                ShooterSpeedRecorder.data = new double[ShooterSpeedRecorder.recordAmount][ShooterSpeedRecorder.numDataEntries];
+                ShooterSpeedRecorder.incrementCurrentShot();
             }
             @Override
             public void run() {
-                if (timer.milliseconds() - lastTime > ShooterSpeedRecorder.recordIntervalMs && num < ShooterSpeedRecorder.recordAmount) {
+                if (timer.milliseconds() - lastTime > ShooterSpeedRecorder.recordIntervalMs
+                        && num < ShooterSpeedRecorder.recordAmountForEachShot
+                        && ShooterSpeedRecorder.getCurrentShot() < ShooterSpeedRecorder.numShotsToRecord) {
                     lastTime = timer.milliseconds();
-                    ShooterSpeedRecorder.data[num][0] = timer.seconds();
-                    ShooterSpeedRecorder.data[num][1] = getAvgMotorSpeed();
-                    ShooterSpeedRecorder.data[num][2] = pidMotorPower;
-                    ShooterSpeedRecorder.data[num][3] = getAvgServoPosition();
+                    ShooterSpeedRecorder.data[ShooterSpeedRecorder.getCurrentShot()][num][0] = timer.seconds();
+                    ShooterSpeedRecorder.data[ShooterSpeedRecorder.getCurrentShot()][num][1] = getAvgMotorSpeed();
+                    ShooterSpeedRecorder.data[ShooterSpeedRecorder.getCurrentShot()][num][2] = pidMotorPower;
+                    ShooterSpeedRecorder.data[ShooterSpeedRecorder.getCurrentShot()][num][3] = getAvgServoPosition();
                     num++;
                 }
             }
             @Override
             public boolean isDone() {
-                return (robot.intake.getState() != Intake.State.PASSIVE_INTAKE && timer.seconds() >= 0.3) || num >= ShooterSpeedRecorder.recordAmount;
+                return (robot.intake.getState() != Intake.State.PASSIVE_INTAKE && timer.seconds() >= 0.3) || num >= ShooterSpeedRecorder.recordAmountForEachShot;
             }
         };
     }
