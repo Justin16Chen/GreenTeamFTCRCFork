@@ -19,18 +19,17 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Shooter extends Subsystem {
-
     /*
-        FAR POSITION where robot intake was aligned at (24, 24)
-        public double nearZoneTargetSpeed = 340, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.95; old speed settings where
-        public static LineEquation hoodEquation = new LineEquation(-0.00595, 2.344);
+            FAR POSITION where robot intake was aligned at (24, 24)
+            public double nearZoneTargetSpeed = 340, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.95; old speed settings where
+            public static LineEquation hoodEquation = new LineEquation(-0.00595, 2.344);
 
-        MIDDLE POSITION where back of robot was aligned at (24, 24)
-        public double nearZoneTargetSpeed = 320, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
-        public static PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
+            MIDDLE POSITION where back of robot was aligned at (24, 24)
+            public double nearZoneTargetSpeed = 320, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
+            public static PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
 
 
-         */
+             */
     public static class ShootingTuning {
         public double maxSpeedUpTime = 5;
         public double minPower = -0.2;
@@ -74,6 +73,7 @@ public class Shooter extends Subsystem {
     private double targetHoodPos, pidMotorPower;
     private final ElapsedTime timer;
     private double targetSpeed;
+    private final ElapsedTime stateTimer;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
         speedPidf = new PIDFController(shooterParams.shooterKp, shooterParams.shooterKi, shooterParams.shooterKd, shooterParams.shooterKf);
@@ -83,6 +83,8 @@ public class Shooter extends Subsystem {
         zone = Zone.NEAR;
         targetSpeed = shooterParams.nearZoneTargetSpeed;
         ShooterSpeedRecorder.resetData();
+        stateTimer = new ElapsedTime();
+        stateTimer.reset();
     }
 
     @Override
@@ -114,13 +116,13 @@ public class Shooter extends Subsystem {
 
         switch (state) {
             case OFF:
-                if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL)) {
+                if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL) || keybinds.check(Keybinds.D2Trigger.PREPARE_FLYWHEEL)) {
                     setState(State.TRACK_SHOOTER_SPEED);
                     break;
                 }
                 break;
             case TRACK_PASSIVE_SPEED:
-                if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL)) {
+                if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL) || keybinds.check(Keybinds.D2Trigger.PREPARE_FLYWHEEL)) {
                     setState(State.TRACK_SHOOTER_SPEED);
                     break;
                 }
@@ -158,7 +160,10 @@ public class Shooter extends Subsystem {
     public void setState(State newState) {
         if (state == newState)
             return;
+
         state = newState;
+        stateTimer.reset();
+
         if (state == State.OFF) {
             setMotorPowers(0);
             setRawServoPositions(hoodParams.downPosition);
@@ -166,7 +171,6 @@ public class Shooter extends Subsystem {
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
             speedPidf.setTarget(targetSpeed);
-            robot.intake.setState(Intake.State.PASSIVE_INTAKE);
         }
     }
     private void setMotorPowers(double power) {
@@ -220,10 +224,6 @@ public class Shooter extends Subsystem {
             private int num = 0;
             private double lastTime = 0;
             @Override
-            public void initialize() {
-                ShooterSpeedRecorder.incrementCurrentShot();
-            }
-            @Override
             public void run() {
                 if (timer.milliseconds() - lastTime > ShooterSpeedRecorder.recordIntervalMs
                         && num < ShooterSpeedRecorder.recordAmountForEachShot
@@ -235,6 +235,10 @@ public class Shooter extends Subsystem {
                     ShooterSpeedRecorder.data[ShooterSpeedRecorder.getCurrentShot()][num][3] = getAvgServoPosition();
                     num++;
                 }
+            }
+            @Override
+            public void end(boolean interrupted) {
+                ShooterSpeedRecorder.incrementCurrentShot();
             }
             @Override
             public boolean isDone() {
@@ -267,5 +271,12 @@ public class Shooter extends Subsystem {
         this.targetSpeed = targetSpeed;
         speedPidf.setTarget(targetSpeed);
         speedPidf.reset();
+    }
+
+    public State getState() {
+        return state;
+    }
+    public double getStateTime() {
+        return stateTimer.seconds();
     }
 }

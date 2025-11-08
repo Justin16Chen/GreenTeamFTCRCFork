@@ -51,7 +51,7 @@ public class ShooterSpeedRecorder extends OpMode {
         if (g1.isDpadDownClicked())
             currentShownShot--;
 
-        currentShownShot = Math.max(0, Math.min(currentShot, currentShownShot));
+        currentShownShot = Math.max(0, Math.min(currentShot - 1, currentShownShot));
 
         telemetry.addLine("===CONTROLS===");
         telemetry.addData("reset speeds", "Y");
@@ -59,10 +59,10 @@ public class ShooterSpeedRecorder extends OpMode {
         telemetry.addLine();
         telemetry.addLine("===HYPER PARAMS===");
         telemetry.addData("current shot index", currentShownShot);
-        telemetry.addData("last recorded shot index", currentShot);
+        telemetry.addData("last recorded shot index", currentShot - 1);
         telemetry.addLine();
         telemetry.addLine("===DATA (time, speed, power, hood) ===");
-        double[][] shot = data[currentShot];
+        double[][] shot = data[currentShownShot];
         for (double[] datum : shot)
             telemetry.addLine("t: " + MathUtils.format2(datum[0]) + ", s: " + MathUtils.format2(datum[1]) + ", p: " + MathUtils.format3(datum[2]) + ", h: " + MathUtils.format3(datum[3]));
 

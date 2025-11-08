@@ -98,6 +98,15 @@ public class Drivetrain extends Subsystem {
 
     @Override
     public void updateState() {
+        if (keybinds.check(Keybinds.D1Trigger.RESET_PINPOINT_POSE)) {
+            setMotorPowers(0, 0, 0, 0);
+            double x = robot.alliance == Alliance.BLUE ? Field.blueResetX : Field.redResetX;
+            double y = Field.resetY;
+            double angleRad = Math.toRadians(robot.alliance == Alliance.BLUE ? Field.blueResetADeg : Field.redResetADeg);
+            Pose2d initialPose = new Pose2d(x, Field.resetY, angleRad);
+            robot.pinpoint.setInitialPose(initialPose);
+        }
+
         double[] linearPowers;
         switch (state) {
             case TELE_DRIVE:
@@ -190,11 +199,11 @@ public class Drivetrain extends Subsystem {
         double subtractValue = Math.round((100 * (axialPower * Math.abs(axialPower) - lateralPower * Math.abs(lateralPower)))) / 100.;
         setMotorPowers((addValue - headingPower), (subtractValue + headingPower), (subtractValue - headingPower), (addValue + headingPower));
     }
-    public void setMotorPowers(double frontLeftPower, double frontRightPower, double backLeftPower, double backRightPower) {
-        fl.setPower(frontLeftPower);
-        fr.setPower(frontRightPower);
-        bl.setPower(backLeftPower);
-        br.setPower(backRightPower);
+    public void setMotorPowers(double flPower, double frPower, double blPower, double brPower) {
+        fl.setPower(flPower);
+        fr.setPower(frPower);
+        bl.setPower(blPower);
+        br.setPower(brPower);
     }
 
     public void printMotorPowers() {
@@ -230,12 +239,9 @@ public class Drivetrain extends Subsystem {
         double nextY = robot.pinpoint.pose().position.y + robot.pinpoint.driver.getVelY(DistanceUnit.INCH);
         double goalX = robot.alliance == Alliance.RED ? Field.redGoalX : Field.blueGoalX;
         double desiredAngle = Math.atan2(Field.goalY - nextY, goalX - nextX);
-        double currentAngle = robot.pinpoint.pose().heading.toDouble();
 
         telemetry.addData("desired angle", Math.round(Math.toDegrees(desiredAngle)));
-        telemetry.addData("current angle", Math.round(Math.toDegrees(currentAngle)));
-
-        return desiredAngle - currentAngle;
+        return desiredAngle;
     }
     public boolean headingWithinShootingTolerance() {
         return Math.abs(getTargetShootHeadingRad() - robot.pinpoint.pose().heading.toDouble()) < Math.toRadians(headingLockParams.headingTolDeg);

@@ -6,6 +6,7 @@ import com.arcrobotics.ftclib.command.Command;
 import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
@@ -94,9 +95,9 @@ public class Robot {
 
     public void update() {
         // update ALL sensors before any subsystems
-        pinpoint.update();
         for (Sensor sensor : sensors)
             sensor.update();
+        pinpoint.update();
 
         // update subsystems
         for (Subsystem subsystem : subsystems)

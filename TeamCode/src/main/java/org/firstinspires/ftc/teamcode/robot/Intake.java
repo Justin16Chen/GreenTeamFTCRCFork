@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Intake extends Subsystem {
-    public static double collectPower = 0.99, passivePower = 0.6, weakPassivePower = 0.35, feedShooterPower = 0.6;
+    public static double collectPower = 0.99, passivePower = 0.5, weakPassivePower = 0.35, feedShooterPower = 0.6;
     public static double minPreciseFeedShooterTime = 1;
     public static double preciseTrackingValidationFrames = 8;
 
@@ -52,6 +52,10 @@ public class Intake extends Subsystem {
             case ON:
                 if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
                     setState(State.OFF);
+                    break;
+                }
+                if (keybinds.check(Keybinds.D2Trigger.SET_PASSIVE_INTAKE) && robot.shooter.getState() == Shooter.State.TRACK_SHOOTER_SPEED && robot.shooter.getStateTime() > 0.1) {
+                    setState(State.PASSIVE_INTAKE);
                     break;
                 }
 

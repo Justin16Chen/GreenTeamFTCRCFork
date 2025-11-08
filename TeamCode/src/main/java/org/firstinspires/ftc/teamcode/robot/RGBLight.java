@@ -44,18 +44,22 @@ public class RGBLight extends Subsystem {
                 light.setPosition(params.red);
         }
         else {
-            int readiness = 0;
-            if (robot.shooter.canShoot())
-                readiness = 2;
-            else if (robot.shooter.canShootExtraNear())
-                readiness = 1;
+            if (robot.shooter.getState() == Shooter.State.TRACK_PASSIVE_SPEED)
+                light.setPosition(params.off);
+            else {
+                int readiness = 0;
+                if (robot.shooter.canShoot())
+                    readiness = 2;
+                else if (robot.shooter.canShootExtraNear())
+                    readiness = 1;
 
-            if (readiness == 0)
-                light.setPosition(params.red);
-            else if (readiness == 1)
-                light.setPosition(params.yellow);
-            else
-                light.setPosition(params.green);
+                if (readiness == 0)
+                    light.setPosition(params.red);
+                else if (readiness == 1)
+                    light.setPosition(params.yellow);
+                else
+                    light.setPosition(params.green);
+            }
         }
     }
 

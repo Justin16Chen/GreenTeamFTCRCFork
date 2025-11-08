@@ -13,9 +13,12 @@ public class Keybinds {
         AUTO_AIM,
         PREPARE_FLYWHEEL,
         START_SHOOTING,
-        CONTINUE_SHOOTING
+        CONTINUE_SHOOTING,
+        RESET_PINPOINT_POSE,
     }
     public enum D2Trigger {
+        PREPARE_FLYWHEEL,
+        SET_PASSIVE_INTAKE,
         TOGGLE_PARK_MODE,
         RAISE_PARK
     }
@@ -38,7 +41,10 @@ public class Keybinds {
         gt1Triggers.put(D1Trigger.PREPARE_FLYWHEEL, GamepadTracker::isRBClicked);
         gt1Triggers.put(D1Trigger.START_SHOOTING, GamepadTracker::isRBClicked);
         gt1Triggers.put(D1Trigger.CONTINUE_SHOOTING, GamepadTracker::isRBPressed);
+        gt1Triggers.put(D1Trigger.RESET_PINPOINT_POSE, GamepadTracker::isBackButtonClicked);
 
+        gt2Triggers.put(D2Trigger.PREPARE_FLYWHEEL, GamepadTracker::isRBClicked);
+        gt2Triggers.put(D2Trigger.SET_PASSIVE_INTAKE, GamepadTracker::isRBClicked);
         gt2Triggers.put(D2Trigger.TOGGLE_PARK_MODE, GamepadTracker::isLTClicked);
         gt2Triggers.put(D2Trigger.RAISE_PARK, GamepadTracker::isRTClicked);
 

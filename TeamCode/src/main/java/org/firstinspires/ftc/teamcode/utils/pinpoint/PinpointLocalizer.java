@@ -58,7 +58,9 @@ public final class PinpointLocalizer implements Localizer {
     }
 
     public void setInitialPose(Pose2d pose) {
+        driver.resetPosAndIMU();
         txWorldPinpoint = pose;
+        txPinpointRobot = new Pose2d(0, 0, 0);
     }
     @Override
     public void setPose(Pose2d pose) {
