@@ -48,10 +48,11 @@ public class EverythingTele extends ParentOpMode {
 
         telemetry.addData("alliance", robot.alliance);
         telemetry.addLine("=====SUBSYSTEMS=====");
-        for (Subsystem subsystem : robot.subsystems) {
-            subsystem.printInfo();
-            telemetry.addLine();
-        }
+        robot.intake.printInfo();
+//        for (Subsystem subsystem : robot.subsystems) {
+//            subsystem.printInfo();
+//            telemetry.addLine();
+//        }
 
         telemetry.addLine("=====SENSORS=====");
         robot.pinpoint.printInfo();

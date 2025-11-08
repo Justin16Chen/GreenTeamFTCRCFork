@@ -76,6 +76,8 @@ public class Shooter extends Subsystem {
     private final ElapsedTime stateTimer;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
+        stateTimer = new ElapsedTime();
+        stateTimer.reset();
         speedPidf = new PIDFController(shooterParams.shooterKp, shooterParams.shooterKi, shooterParams.shooterKd, shooterParams.shooterKf);
         speedPidf.setOutputBounds(0, 0.99);
         setState(State.TRACK_PASSIVE_SPEED);
@@ -83,8 +85,6 @@ public class Shooter extends Subsystem {
         zone = Zone.NEAR;
         targetSpeed = shooterParams.nearZoneTargetSpeed;
         ShooterSpeedRecorder.resetData();
-        stateTimer = new ElapsedTime();
-        stateTimer.reset();
     }
 
     @Override

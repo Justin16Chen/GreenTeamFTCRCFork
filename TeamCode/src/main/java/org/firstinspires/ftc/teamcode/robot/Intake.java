@@ -5,16 +5,19 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.misc.MotorCurrentTracker;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Intake extends Subsystem {
-    public static double collectPower = 0.99, passivePower = 0.5, weakPassivePower = 0.35, feedShooterPower = 0.6;
+    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.35, feedShooterPower = 0.6;
     public static double minPreciseFeedShooterTime = 1;
     public static double preciseTrackingValidationFrames = 8;
+    public static int maxNormalCurrent = 5800, abnormalCurrentValidationFrames = 2, abnormalCurrentSafetyFrames = 1;
 
     public enum State {
         ON, OFF, PASSIVE_INTAKE, FEED_SHOOTER_PRECISE, FEED_SHOOTER_TELE_TOGGLE
@@ -23,6 +26,7 @@ public class Intake extends Subsystem {
     private State state;
     private DcMotorEx motor;
     private final ElapsedTime stateTimer;
+    private MotorCurrentTracker currentTracker;
 
     private int numConsecutiveValidatedFrames;
     private int officialNumBalls, unofficalNumBalls;
@@ -36,6 +40,7 @@ public class Intake extends Subsystem {
     @Override
     public void declareHardware() {
         motor = hardware.getIntakeMotor();
+        currentTracker = new MotorCurrentTracker(motor, maxNormalCurrent, abnormalCurrentValidationFrames, abnormalCurrentSafetyFrames);
     }
 
     @Override
@@ -59,7 +64,12 @@ public class Intake extends Subsystem {
                     break;
                 }
 
-                motor.setPower(collectPower);
+                currentTracker.updateCurrentTracking();
+
+                if (keybinds.check(Keybinds.D1Trigger.MANUAL_OUTTAKE) || currentTracker.hasValidatedAbnormalCurrent())
+                    motor.setPower(outtakePower);
+                else
+                    motor.setPower(collectPower);
 
                 break;
             case PASSIVE_INTAKE:
@@ -136,6 +146,7 @@ public class Intake extends Subsystem {
         telemetry.addData("state", state);
         telemetry.addData("keybind activated", keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE));
         telemetry.addData("motor power", MathUtils.format3(motor.getPower()));
+        telemetry.addData("motor current", MathUtils.format3(motor.getCurrent(CurrentUnit.MILLIAMPS)));
     }
     private int getCurFrameNumBalls() {
         int curFrameNumBalls = 0;
