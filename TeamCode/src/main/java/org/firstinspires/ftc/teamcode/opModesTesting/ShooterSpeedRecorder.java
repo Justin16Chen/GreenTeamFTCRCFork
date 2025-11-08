@@ -22,6 +22,7 @@ public class ShooterSpeedRecorder extends OpMode {
 
     public static void resetData() {
         data = new double[numShotsToRecord][recordAmountForEachShot][numDataEntries];
+        currentShot = 0;
     }
 
     private static int currentShot = 0;
@@ -50,16 +51,20 @@ public class ShooterSpeedRecorder extends OpMode {
         if (g1.isDpadDownClicked())
             currentShownShot--;
 
+        currentShownShot = Math.max(0, Math.min(currentShot, currentShownShot));
+
         telemetry.addLine("===CONTROLS===");
         telemetry.addData("reset speeds", "Y");
         telemetry.addData("scroll through recorded shots", "dpad up/down");
         telemetry.addLine();
-        telemetry.addLine("===DATA===");
+        telemetry.addLine("===HYPER PARAMS===");
         telemetry.addData("current shot index", currentShownShot);
+        telemetry.addData("last recorded shot index", currentShot);
         telemetry.addLine();
+        telemetry.addLine("===DATA (time, speed, power, hood) ===");
         double[][] shot = data[currentShot];
         for (double[] datum : shot)
-            telemetry.addLine("time: " + MathUtils.format2(datum[0]) + ", speed: " + Math.round(datum[1]) + ", power: " + MathUtils.format3(datum[2]) + ", hood: " + MathUtils.format3(datum[3]));
+            telemetry.addLine("t: " + MathUtils.format2(datum[0]) + ", s: " + MathUtils.format2(datum[1]) + ", p: " + MathUtils.format3(datum[2]) + ", h: " + MathUtils.format3(datum[3]));
 
         telemetry.update();
     }
