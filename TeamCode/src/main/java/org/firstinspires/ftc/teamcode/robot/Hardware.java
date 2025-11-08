@@ -29,7 +29,7 @@ public class Hardware {
     public static String flipperServoName = "flipperServo";
     public static int flipperOpenPWM = 975, flipperClosePWM = 1050;
     public static String leftParkServoName = "leftParkServo", rightParkServoName = "rightParkServo";
-    public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkWPM = 1676;
+    public static int leftStorePWM = 1816, rightStorePWM = 1216, leftParkPWM = 1348, rightParkPWM = 1676;
     public static String lightName = "light";
 //    public static int minLightPWM = 500, maxLightPWM = 2520; // on off light
     public static int minLightPWM = 1000, maxLightPWM = 2000; // rgb light
@@ -78,11 +78,13 @@ public class Hardware {
     }
     public DcMotorEx getLeftShooterMotor() {
         DcMotorEx motor = hardwareMap.get(DcMotorEx.class, shooterLeftName);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         return motor;
     }
     public DcMotorEx getRightShooterMotor() {
         DcMotorEx motor = hardwareMap.get(DcMotorEx.class, shooterRightName);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motor.setDirection(DcMotorSimple.Direction.REVERSE);
         return motor;
@@ -111,7 +113,7 @@ public class Hardware {
     }
     public ServoImplEx getRightParkServo() {
         ServoImplEx servo = hardwareMap.get(ServoImplEx.class, rightParkServoName);
-        servo.setPwmRange(new PwmControl.PwmRange(rightStorePWM, rightParkWPM));
+        servo.setPwmRange(new PwmControl.PwmRange(rightStorePWM, rightParkPWM));
         return servo;
     }
     public ServoImplEx getFlipperServo() {

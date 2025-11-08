@@ -2,16 +2,19 @@ package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Intake extends Subsystem {
-    public static double preciseTrackingValidationFrames = 5;
     public static double collectPower = 0.99, passivePower = 0.6, weakPassivePower = 0.35, feedShooterPower = 0.6;
+    public static double minPreciseFeedShooterTime = 1;
+    public static double preciseTrackingValidationFrames = 8;
 
     public enum State {
         ON, OFF, PASSIVE_INTAKE, FEED_SHOOTER_PRECISE, FEED_SHOOTER_TELE_TOGGLE
@@ -19,12 +22,15 @@ public class Intake extends Subsystem {
 
     private State state;
     private DcMotorEx motor;
+    private final ElapsedTime stateTimer;
 
     private int numConsecutiveValidatedFrames;
     private int officialNumBalls, unofficalNumBalls;
     public Intake(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
         state = State.OFF;
+        stateTimer = new ElapsedTime();
+        stateTimer.reset();
     }
 
     @Override
@@ -68,7 +74,7 @@ public class Intake extends Subsystem {
                 break;
             case FEED_SHOOTER_PRECISE:
                 updateNumBalls();
-                if (officialNumBalls == 0) {
+                if (officialNumBalls == 0 && stateTimer.seconds() > minPreciseFeedShooterTime) {
                     setState(State.OFF);
                     break;
                 }
@@ -87,14 +93,23 @@ public class Intake extends Subsystem {
             return;
 
         state = newState;
+        stateTimer.reset();
 
         if (state == State.ON) {
             motor.setPower(collectPower);
             turnOnSensors(false);
+            if (robot.opmodeType == OpmodeType.TELE) {
+                robot.drivetrain.setState(Drivetrain.State.TELE_SLOW_DRIVE);
+                robot.drivetrain.setIntakeSlowDriveScale();
+            }
         }
         else if (state == State.OFF) {
             motor.setPower(0);
             turnOnSensors(false);
+            if (robot.opmodeType == OpmodeType.TELE &&
+                    robot.drivetrain.getState() == Drivetrain.State.TELE_SLOW_DRIVE &&
+                    !robot.drivetrain.hasParkSlowDriveScale())
+                robot.drivetrain.setState(Drivetrain.State.TELE_DRIVE);
         }
         else if (state == State.PASSIVE_INTAKE) {
             motor.setPower(passivePower);
@@ -138,7 +153,8 @@ public class Intake extends Subsystem {
         unofficalNumBalls = newNumBalls;
 
         // update official value
-        if (numConsecutiveValidatedFrames >= preciseTrackingValidationFrames)
+        if (numConsecutiveValidatedFrames >= preciseTrackingValidationFrames ||  // validated value
+                officialNumBalls == 0 && unofficalNumBalls > 0) // better to overestimate than underestimate
             officialNumBalls = unofficalNumBalls;
     }
 }

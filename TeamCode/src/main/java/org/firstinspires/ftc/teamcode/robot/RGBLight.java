@@ -27,7 +27,15 @@ public class RGBLight extends Subsystem {
 
     @Override
     public void updateState() {
-        if (robot.intake.getState() == Intake.State.FEED_SHOOTER_PRECISE) {
+        if (robot.drivetrain.getState() == Drivetrain.State.TELE_SLOW_DRIVE && robot.drivetrain.hasParkSlowDriveScale()) {
+            if (robot.drivetrain.inPreciseParkTolerance())
+                light.setPosition(params.green);
+            else if (robot.drivetrain.inBasicParkTolerance())
+                light.setPosition(params.yellow);
+            else
+                light.setPosition(params.off);
+        }
+        else if (robot.intake.getState() == Intake.State.FEED_SHOOTER_PRECISE) {
             if (robot.intake.getOfficialNumBalls() == 3)
                 light.setPosition(params.white);
             else if (robot.intake.getOfficialNumBalls() == 2)
@@ -37,11 +45,10 @@ public class RGBLight extends Subsystem {
         }
         else {
             int readiness = 0;
-
-            if (robot.drivetrain.headingWithinShootingTolerance())
-                readiness++;
             if (robot.shooter.canShoot())
-                readiness++;
+                readiness = 2;
+            else if (robot.shooter.canShootExtraNear())
+                readiness = 1;
 
             if (readiness == 0)
                 light.setPosition(params.red);
@@ -50,7 +57,6 @@ public class RGBLight extends Subsystem {
             else
                 light.setPosition(params.green);
         }
-
     }
 
     @Override

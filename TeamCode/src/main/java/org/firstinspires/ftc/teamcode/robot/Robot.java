@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.Command;
+import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 
@@ -57,6 +58,7 @@ public class Robot {
         park = new Park(hardware, telemetry);
         subsystems.add(park);
         light = new RGBLight(hardware, telemetry);
+        subsystems.add(light);
 
         colorSensors = new BallColorSensor[3];
         BallColorSensor backColorSensor = new BallColorSensor(hardware, telemetry, Hardware.backColorSensorName, false);
@@ -102,26 +104,29 @@ public class Robot {
     }
 
     public Command shootBallCommand(boolean preciseIntaking, boolean returnToPassiveSpeed) {
-        return new SequentialCommandGroup(
-                new InstantCommand(() -> intake.setState(Intake.State.PASSIVE_INTAKE)),
-                new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
-                new WaitCommand(Flipper.rotationTimeMs),
-                new InstantCommand(() -> intake.setState(preciseIntaking ?
-                        Intake.State.FEED_SHOOTER_PRECISE :
-                        Intake.State.FEED_SHOOTER_TELE_TOGGLE)),
-                new WaitUntilCommand(
-                        () -> intake.getState() == Intake.State.OFF,
-                        preciseIntaking ?
-                                Shooter.maxShootTimeMs :
-                                Double.MAX_VALUE),
-                new InstantCommand(() -> {
-                    intake.setState(Intake.State.OFF);
-                    flipper.setState(Flipper.State.CLOSED);
-                }),
-                new WaitCommand(Flipper.rotationTimeMs),
-                returnToPassiveSpeed ?
-                        new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) :
-                        new InstantCommand(() -> {})
+        return new ParallelCommandGroup(
+                new SequentialCommandGroup(
+                        new InstantCommand(() -> intake.setState(Intake.State.PASSIVE_INTAKE)),
+                        new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
+                        new WaitCommand(Flipper.rotationTimeMs),
+                        new InstantCommand(() -> intake.setState(preciseIntaking ?
+                                Intake.State.FEED_SHOOTER_PRECISE :
+                                Intake.State.FEED_SHOOTER_TELE_TOGGLE)),
+                        new WaitUntilCommand(
+                                () -> intake.getState() == Intake.State.OFF,
+                                preciseIntaking ?
+                                        Shooter.maxShootTimeMs :
+                                        Double.MAX_VALUE),
+                        new InstantCommand(() -> {
+                            intake.setState(Intake.State.OFF);
+                            flipper.setState(Flipper.State.CLOSED);
+                        }),
+                        new WaitCommand(Flipper.rotationTimeMs),
+                        returnToPassiveSpeed ?
+                                new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) :
+                                new InstantCommand(() -> {})
+                ),
+                shooter.shooterTrackerCommand()
         );
     }
 }

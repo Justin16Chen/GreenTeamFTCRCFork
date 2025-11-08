@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.opModesCompetition.tele;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -19,6 +21,8 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class EverythingTele extends ParentOpMode {
+    public static double fieldRotation = 90;
+
     public static double startX = 0, startY = 0, startA = 0;
     private Robot robot;
     public final Alliance alliance;
@@ -54,6 +58,14 @@ public class EverythingTele extends ParentOpMode {
         telemetry.addLine();
         for (BallColorSensor colorSensor : robot.colorSensors)
             colorSensor.printInfo();
+
+        double x = robot.pinpoint.pose().position.x, y = robot.pinpoint.pose().position.y, heading = robot.pinpoint.pose().heading.toDouble();
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas fieldOverlay = packet.fieldOverlay();
+        fieldOverlay.setRotation(Math.toRadians(fieldRotation)); // rotate 90deg clockwise
+        fieldOverlay.strokeCircle(x, y, 5);
+        fieldOverlay.strokeLine(x, y, x + 5 * Math.cos(heading), y + 5 * Math.sin(heading));
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
         telemetry.update();
     }

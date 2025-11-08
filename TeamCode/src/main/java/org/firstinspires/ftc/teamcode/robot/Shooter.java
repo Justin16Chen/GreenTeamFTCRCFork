@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.opModesTesting.ShooterSpeedRecorder;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.commands.SimpleCommand;
 import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
@@ -40,7 +41,7 @@ public class Shooter extends Subsystem {
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.15;
         public double maxPowerSpeedErrorThreshold = 10;
         public double nearZoneTargetSpeed = 390, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
-        public double nearZoneMinSpeed = 340;
+        public double nearZoneMinSpeed = 340, nearZoneExtraCloseMinSpeed = 315;
         public double farZoneTargetSpeed = 400, farZoneTargetConstantWeighting = 0.7, farZoneTargetConstant = 0.93;
         public double farZoneMinSpeed = 370;
     }
@@ -58,7 +59,7 @@ public class Shooter extends Subsystem {
     public static HoodParams hoodParams = new HoodParams();
     public static boolean ENABLE_TESTING = false;
     public static long maxShootTimeMs = 5000;
-    public static double passivePower = 0, intakeOnPower = 0.75;
+    public static double passivePower = 0.5, intakeOnPower = 0.75;
 
     public enum State {
         OFF,
@@ -76,6 +77,7 @@ public class Shooter extends Subsystem {
     private final PIDFController speedPidf; // input error between current speed and target speed, output desired power
     private double targetHoodPos, pidMotorPower;
     private final ElapsedTime timer;
+    private double targetSpeed;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
         speedPidf = new PIDFController(shooterParams.shooterKp, shooterParams.shooterKi, shooterParams.shooterKd, shooterParams.shooterKf);
@@ -83,6 +85,7 @@ public class Shooter extends Subsystem {
         setState(State.TRACK_PASSIVE_SPEED);
         timer = new ElapsedTime();
         zone = Zone.NEAR;
+        targetSpeed = shooterParams.nearZoneTargetSpeed;
     }
 
     @Override
@@ -114,6 +117,10 @@ public class Shooter extends Subsystem {
 
         switch (state) {
             case OFF:
+                if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL)) {
+                    setState(State.TRACK_SHOOTER_SPEED);
+                    break;
+                }
                 break;
             case TRACK_PASSIVE_SPEED:
                 if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL)) {
@@ -123,10 +130,9 @@ public class Shooter extends Subsystem {
                 setMotorPowers(passivePower);
                 break;
             case TRACK_SHOOTER_SPEED:
-                if (keybinds.check(Keybinds.D1Trigger.START_SHOOTING) && robot != null) {
+                if (keybinds.check(Keybinds.D1Trigger.START_SHOOTING) && robot != null)
                     robot.shootBallCommand(false, true).schedule();
-                    shooterTrackerCommand().schedule();
-                }
+
 
                 if (!ENABLE_TESTING) {
                     targetHoodPos = hoodParams.hoodEquation.calculate(getAvgMotorSpeed());
@@ -162,7 +168,7 @@ public class Shooter extends Subsystem {
         }
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
-            speedPidf.setTarget(shooterParams.nearZoneTargetSpeed);
+            speedPidf.setTarget(targetSpeed);
             robot.intake.setState(Intake.State.PASSIVE_INTAKE);
         }
     }
@@ -212,20 +218,16 @@ public class Shooter extends Subsystem {
         telemetry.addData("right servo position", MathUtils.format3(rightServo.getPosition()));
     }
 
-    private Command shooterTrackerCommand() {
-        return new Command() {
+    public Command shooterTrackerCommand() {
+        return new SimpleCommand() {
             private int num = 0;
             private double lastTime = 0;
-            @Override
-            public Set<com.arcrobotics.ftclib.command.Subsystem> getRequirements() {
-                return Collections.emptySet();
-            }
             @Override
             public void initialize() {
                 ShooterSpeedRecorder.data = new double[ShooterSpeedRecorder.recordAmount][ShooterSpeedRecorder.numDataEntries];
             }
             @Override
-            public void execute() {
+            public void run() {
                 if (timer.milliseconds() - lastTime > ShooterSpeedRecorder.recordIntervalMs && num < ShooterSpeedRecorder.recordAmount) {
                     lastTime = timer.milliseconds();
                     ShooterSpeedRecorder.data[num][0] = timer.seconds();
@@ -236,8 +238,8 @@ public class Shooter extends Subsystem {
                 }
             }
             @Override
-            public boolean isFinished() {
-                return state == State.TRACK_PASSIVE_SPEED || num >= ShooterSpeedRecorder.recordAmount;
+            public boolean isDone() {
+                return (robot.intake.getState() != Intake.State.PASSIVE_INTAKE && timer.seconds() >= 0.3) || num >= ShooterSpeedRecorder.recordAmount;
             }
         };
     }
@@ -257,5 +259,14 @@ public class Shooter extends Subsystem {
 
     public boolean canShoot() {
         return zone == Zone.NEAR ? canShootThreeNear() : canShootThreeFar();
+    }
+    public boolean canShootExtraNear() {
+        return getAvgMotorSpeed() > shooterParams.nearZoneExtraCloseMinSpeed;
+    }
+
+    public void setTargetSpeed(double targetSpeed) {
+        this.targetSpeed = targetSpeed;
+        speedPidf.setTarget(targetSpeed);
+        speedPidf.reset();
     }
 }

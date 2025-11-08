@@ -25,20 +25,26 @@ public class Park extends Subsystem {
 
     @Override
     public void updateState() {
+        if (keybinds.check(Keybinds.D2Trigger.TOGGLE_PARK_MODE)) {
+            if (robot.drivetrain.getState() == Drivetrain.State.TELE_SLOW_DRIVE && robot.drivetrain.hasParkSlowDriveScale())
+                robot.drivetrain.setState(Drivetrain.State.TELE_DRIVE);
+            else {
+                robot.drivetrain.setState(Drivetrain.State.TELE_SLOW_DRIVE);
+                robot.drivetrain.setParkSlowDriveScale();
+                robot.shooter.setState(Shooter.State.OFF);
+            }
+        }
 
-        if (keybinds.check(Keybinds.D1Trigger.PARK)) {
+        if (keybinds.check(Keybinds.D2Trigger.RAISE_PARK)) {
             up = !up;
 
             setServoPositions(up ? parkPosition : stowPosition);
-            
-            if (robot != null)
-                robot.shooter.setState(Shooter.State.OFF);
         }
     }
 
     @Override
     public void printInfo() {
-        telemetry.addLine("===PARK===");
+        telemetry.addLine("===RAISE_PARK===");
         telemetry.addData("left servo pos", MathUtils.format3(leftServo.getPosition()));
         telemetry.addData("right servo pos", MathUtils.format3(rightServo.getPosition()));
     }

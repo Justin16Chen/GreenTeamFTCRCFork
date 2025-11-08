@@ -13,10 +13,11 @@ public class Keybinds {
         AUTO_AIM,
         PREPARE_FLYWHEEL,
         START_SHOOTING,
-        CONTINUE_SHOOTING,
-        PARK
+        CONTINUE_SHOOTING
     }
     public enum D2Trigger {
+        TOGGLE_PARK_MODE,
+        RAISE_PARK
     }
 
     public final GamepadTracker g1, g2;
@@ -37,7 +38,10 @@ public class Keybinds {
         gt1Triggers.put(D1Trigger.PREPARE_FLYWHEEL, GamepadTracker::isRBClicked);
         gt1Triggers.put(D1Trigger.START_SHOOTING, GamepadTracker::isRBClicked);
         gt1Triggers.put(D1Trigger.CONTINUE_SHOOTING, GamepadTracker::isRBPressed);
-        gt1Triggers.put(D1Trigger.PARK, GamepadTracker::isXClicked);
+
+        gt2Triggers.put(D2Trigger.TOGGLE_PARK_MODE, GamepadTracker::isLTClicked);
+        gt2Triggers.put(D2Trigger.RAISE_PARK, GamepadTracker::isRTClicked);
+
     }
 
 

@@ -14,10 +14,6 @@ import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.misc.Field;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
-import org.firstinspires.ftc.teamcode.utils.pidDrive.DrivePath;
-import org.firstinspires.ftc.teamcode.utils.pidDrive.PathParams;
-import org.firstinspires.ftc.teamcode.utils.pidDrive.Tolerance;
-import org.firstinspires.ftc.teamcode.utils.pidDrive.Waypoint;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 import java.util.Collections;
@@ -25,38 +21,71 @@ import java.util.Set;
 
 @Config
 public class Drivetrain extends Subsystem {
-    public static class CorrectiveDriveParams {
-        public double desiredNearShootDistance = 55.93;
-        public double distTol = 1, headingTol = 2;
-        public double[] drivePIDs = { 0.07, 0, 0.01, 0.02, 0, 0 };
-        public double minSpeed = 0.5;
-        public double maxSpeed = 0.8, maxHeadingSpeed = 0.8;
-    }
     public static class HeadingLockParams {
         public boolean testing = false;
         public double slowAxialSpeed = 0.7, slowLateralSpeed = 0.85;
         public double bigKp = -0.7, bigKd = 0.01, smallKp = -2, smallKd = 0;
-        public double smallHeadingThreshold = 10;
-        public double headingTol = 1;
+        public double smallHeadingThresholdDeg = 10;
+        public double headingTolDeg = 1;
     }
-    public static CorrectiveDriveParams correctiveDriveParams = new CorrectiveDriveParams();
     public static HeadingLockParams headingLockParams = new HeadingLockParams();
     public enum State {
         AUTONOMOUS,
-        TELE_DRIVE
+        TELE_DRIVE,
+        TELE_SLOW_DRIVE
     }
-    public static double lateralScaling = 3, axialScaling = 3, headingScaling = 3;
-    public static double minTurnSpeed = 0.3, correctiveStrafeHeadingMultiplier = -0.15;
-    private final State state;
+    public static double lateralScaling = 2, axialScaling = 2, headingScaling = 2;
+    public static double minTeleLateralSpeed = 0.4, minTeleAxialSpeed = 0.4, minTeleTurnSpeed = 0.1, maxTeleTurnSpeed = 1, correctiveStrafeHeadingMultiplier = -0.15, minLateralSpeedForStrafeCorrection = 0.7;
+    public static double intakeLateralScale = 1, intakeAxialScale = 1, intakeHeadingScale = 0.7;
+    public static double parkLateralScale = 0.5, parkAxialScale = 0.5, parkHeadingScale = 0.4;
+    public static double parkPreciseLateralTol = 3, parkPreciseAxialTol =  1.5, parkPreciseHeadingDegTol = 2;
+    public static double parkBasicLateralTol = 3, parkBasicAxialTol = 2.5, parkBasicHeadingDegTol = 4;
+    private State state;
     private DcMotorEx fr, fl, br, bl;
-    private final PIDFController headingLockPid;
+    private final PIDFController headingLockRadPid;
+    private double slowDriveLateralScale, slowDriveAxialScale, slowDriveHeadingScale;
 
     public Drivetrain(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType) {
         super(hardware, telemetry);
         this.state = opmodeType == OpmodeType.TELE ? State.TELE_DRIVE : State.AUTONOMOUS;
-        headingLockPid = new PIDFController(headingLockParams.bigKp, 0, headingLockParams.bigKd, 0);
-        headingLockPid.setTarget(0);
-        headingLockPid.setOutputBounds(-1, 1);
+        headingLockRadPid = new PIDFController(headingLockParams.bigKp, 0, headingLockParams.bigKd, 0);
+        headingLockRadPid.setTarget(0);
+        headingLockRadPid.setOutputBounds(-1, 1);
+        setIntakeSlowDriveScale();
+    }
+
+    public boolean hasParkSlowDriveScale() {
+        return Math.abs(slowDriveLateralScale - parkLateralScale) < 0.01;
+    }
+    public void setParkSlowDriveScale() {
+        slowDriveLateralScale = parkLateralScale;
+        slowDriveAxialScale = parkAxialScale;
+        slowDriveHeadingScale = parkHeadingScale;
+    }
+    public void setIntakeSlowDriveScale() {
+        slowDriveLateralScale = intakeLateralScale;
+        slowDriveAxialScale = intakeAxialScale;
+        slowDriveHeadingScale = intakeHeadingScale;
+    }
+    public boolean inPreciseParkTolerance() {
+        Pose2d pose = robot.pinpoint.pose();
+        return Math.abs(pose.position.x - getParkX()) < parkPreciseLateralTol &&
+                Math.abs(pose.position.y - Field.parkY) < parkPreciseAxialTol &&
+                Math.abs(Math.toDegrees(pose.heading.toDouble()) - Field.parkADeg) < parkPreciseHeadingDegTol;
+    }
+    public boolean inBasicParkTolerance() {
+        Pose2d pose = robot.pinpoint.pose();
+        return Math.abs(pose.position.x - getParkX()) < parkBasicLateralTol &&
+                Math.abs(pose.position.y - Field.parkY) < parkBasicAxialTol &&
+                Math.abs(Math.toDegrees(pose.heading.toDouble()) - Field.parkADeg) < parkBasicHeadingDegTol;
+    }
+
+    private double getParkX() {
+        return robot.alliance == Alliance.BLUE ? Field.blueParkX : Field.redParkX;
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     @Override
@@ -69,10 +98,11 @@ public class Drivetrain extends Subsystem {
 
     @Override
     public void updateState() {
+        double[] linearPowers;
         switch (state) {
             case TELE_DRIVE:
                 // calculate lateral and axial powers
-                double[] linearPowers = calculateLinearPowersWithGamepadInput();
+                linearPowers = calculateLinearPowersWithGamepadInput();
 
                 if (keybinds.check(Keybinds.D1Trigger.AUTO_AIM)) {
                     // slow down for increased accuracy
@@ -80,8 +110,9 @@ public class Drivetrain extends Subsystem {
                     linearPowers[1] = headingLockParams.slowAxialSpeed * linearPowers[1];
 
                     // correct heading power based off of new slowed-down lateral speed
-                    double headingPower = getHeadingLockPower();
-                    headingPower += linearPowers[0] * correctiveStrafeHeadingMultiplier;
+                    double headingPower = getHeadingLockPower(getTargetShootHeadingRad());
+                    if (Math.abs(linearPowers[0]) > minLateralSpeedForStrafeCorrection)
+                        headingPower += linearPowers[0] * correctiveStrafeHeadingMultiplier;
                     headingPower = Range.clip(headingPower, -1, 1);
 
                     if (headingLockParams.testing)
@@ -91,9 +122,32 @@ public class Drivetrain extends Subsystem {
                 }
                 else {
                     // correct heading power based off normal lateral speed
-                    double headingPower = calculateHeadingPowerWithGamepadInput(linearPowers[0]);
+                    double headingPower = calculateHeadingPowerWithGamepadInput(linearPowers);
                     setDrivePowers(linearPowers[0], linearPowers[1], headingPower);
                 }
+                break;
+            case TELE_SLOW_DRIVE:
+                if (keybinds.check(Keybinds.D1Trigger.AUTO_AIM) && !hasParkSlowDriveScale()) {
+                    setState(State.TELE_DRIVE);
+                    break;
+                }
+
+                linearPowers = calculateLinearPowersWithGamepadInput();
+                linearPowers[0] *= slowDriveLateralScale;
+                linearPowers[1] *= slowDriveAxialScale;
+                // correct heading power based off normal lateral speed
+                double headingPower = calculateHeadingPowerWithGamepadInput(linearPowers);
+
+                // override heading with heading lock
+                if (keybinds.check(Keybinds.D1Trigger.AUTO_AIM)) {
+                    linearPowers[0] = 0;
+                    linearPowers[1] = 0;
+                    headingPower = getHeadingLockPower(Math.toRadians(Field.parkADeg));
+                }
+
+                headingPower *= slowDriveHeadingScale;
+                setDrivePowers(linearPowers[0], linearPowers[1], headingPower);
+
                 break;
             case AUTONOMOUS:
                 // do nothing
@@ -104,14 +158,18 @@ public class Drivetrain extends Subsystem {
     public double[] calculateLinearPowersWithGamepadInput() {
         double xSign = Math.signum(g1.getLeftStickX());
         double ySign = Math.signum(g1.getLeftStickY());
-        double lateral = xSign * Math.abs(Math.pow(g1.getLeftStickX(), lateralScaling));
-        double axial = ySign * -Math.abs(Math.pow(g1.getLeftStickY(), axialScaling));
+        double lateral = xSign * Math.max(minTeleLateralSpeed, Math.abs(Math.pow(g1.getLeftStickX(), lateralScaling)));
+        double axial = ySign * -Math.max(minTeleAxialSpeed, Math.abs(Math.pow(g1.getLeftStickY(), axialScaling)));
         return new double[]{ lateral, axial };
     }
-    public double calculateHeadingPowerWithGamepadInput(double lateral) {
+    public double calculateHeadingPowerWithGamepadInput(double[] powers) {
         double headingSign = Math.signum(g1.getRightStickX());
-        double heading = headingSign * -Math.max(minTurnSpeed, Math.abs(Math.pow(g1.getRightStickX(), headingScaling)));
-        double correctiveStrafeHeading = lateral * correctiveStrafeHeadingMultiplier;
+        double heading = headingSign * -Math.max(minTeleTurnSpeed, Math.abs(Math.pow(g1.getRightStickX(), headingScaling)));
+        headingSign = Math.signum(heading);
+        heading = headingSign * Math.min(Math.abs(heading), maxTeleTurnSpeed);
+        double correctiveStrafeHeading = 0;
+        if (Math.abs(powers[0]) > minLateralSpeedForStrafeCorrection && powers[1] == 0)
+            correctiveStrafeHeading = powers[0] * correctiveStrafeHeadingMultiplier;
 
         return Range.clip(heading + correctiveStrafeHeading, -1, 1);
     }
@@ -142,32 +200,32 @@ public class Drivetrain extends Subsystem {
     public void printMotorPowers() {
         telemetry.addData("dt powers (FL FR BL BR)", MathUtils.format3(fl.getPower()) + ", " + MathUtils.format3(fr.getPower()) + ", " + MathUtils.format3(bl.getPower()) + ", " + MathUtils.format3(br.getPower()));
     }
-    private double getHeadingLockPower() {
-        double headingError = getHeadingShootError();
+    private double getHeadingLockPower(double targetHeadingRad) {
+        double headingError = targetHeadingRad - robot.pinpoint.pose().heading.toDouble();
         double absHeadingError = Math.abs(headingError);
-        if (absHeadingError < Math.toRadians(headingLockParams.headingTol))
+        if (absHeadingError < Math.toRadians(headingLockParams.headingTolDeg))
             return 0;
         boolean flipHeadingPower = absHeadingError > Math.PI;
         if (flipHeadingPower)
             headingError = Math.signum(headingError) * (Math.PI * 2 - absHeadingError);
 
-        if (absHeadingError > Math.toRadians(headingLockParams.smallHeadingThreshold))
-            headingLockPid.setPIDValues(headingLockParams.bigKp, 0, headingLockParams.bigKd, 0);
+        if (absHeadingError > Math.toRadians(headingLockParams.smallHeadingThresholdDeg))
+            headingLockRadPid.setPIDValues(headingLockParams.bigKp, 0, headingLockParams.bigKd, 0);
         else
-            headingLockPid.setPIDValues(headingLockParams.smallKp, 0, headingLockParams.smallKd, 0);
+            headingLockRadPid.setPIDValues(headingLockParams.smallKp, 0, headingLockParams.smallKd, 0);
 
-        double headingPower = headingLockPid.update(headingError);
+        double headingPower = headingLockRadPid.update(headingError);
         if (flipHeadingPower)
             headingPower *= -1;
 
         telemetry.addData("flip power", flipHeadingPower);
-        telemetry.addData("kp", headingLockPid.kP);
+        telemetry.addData("kp", headingLockRadPid.kP);
         telemetry.addData("error", Math.toDegrees(headingError));
         telemetry.addData("power", headingPower);
 
         return headingPower;
     }
-    private double getHeadingShootError() {
+    private double getTargetShootHeadingRad() {
         double nextX = robot.pinpoint.pose().position.x + robot.pinpoint.driver.getVelX(DistanceUnit.INCH);
         double nextY = robot.pinpoint.pose().position.y + robot.pinpoint.driver.getVelY(DistanceUnit.INCH);
         double goalX = robot.alliance == Alliance.RED ? Field.redGoalX : Field.blueGoalX;
@@ -180,13 +238,13 @@ public class Drivetrain extends Subsystem {
         return desiredAngle - currentAngle;
     }
     public boolean headingWithinShootingTolerance() {
-        return getHeadingShootError() < headingLockParams.headingTol;
+        return Math.abs(getTargetShootHeadingRad() - robot.pinpoint.pose().heading.toDouble()) < Math.toRadians(headingLockParams.headingTolDeg);
     }
     public Command headingLockCommand() {
         return new Command() {
             @Override
             public void execute() {
-                setDrivePowers(0, 0, getHeadingLockPower());
+                setDrivePowers(0, 0, getHeadingLockPower(getTargetShootHeadingRad()));
             }
             @Override
             public boolean isFinished() {

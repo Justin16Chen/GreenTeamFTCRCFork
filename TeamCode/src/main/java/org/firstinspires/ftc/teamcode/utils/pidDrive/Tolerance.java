@@ -3,20 +3,20 @@ package org.firstinspires.ftc.teamcode.utils.pidDrive;
 public class Tolerance {
     public double xTol;
     public double yTol;
-    public double headingRadTol;
-    public Tolerance(double xTol, double yTol, double headingRadTol) {
+    public double headingDegTol;
+    public Tolerance(double xTol, double yTol, double headingDegTol) {
         this.xTol = xTol;
         this.yTol = yTol;
-        this.headingRadTol = headingRadTol;
+        this.headingDegTol = headingDegTol;
     }
-    public Tolerance(double distTol, double headingRadTol) {
+    public Tolerance(double distTol, double headingDegTol) {
         xTol = distTol;
         yTol = distTol;
-        this.headingRadTol = headingRadTol;
+        this.headingDegTol = headingDegTol;
     }
     public Tolerance(double distTol) {
         xTol = distTol;
         yTol = distTol;
-        headingRadTol = 2 * Math.PI;
+        headingDegTol = 360;
     }
 }
