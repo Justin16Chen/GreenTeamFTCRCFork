@@ -14,10 +14,10 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Intake extends Subsystem {
-    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.4, feedShooterPower = 0.6;
+    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.4, feedShooterNearZonePower = 0.65, feedShooterFarPower = 0.5;
     public static double minPreciseFeedShooterTime = 1;
     public static double preciseTrackingValidationFrames = 8;
-    public static int maxNormalCurrent = 5800, abnormalCurrentValidationFrames = 2, abnormalCurrentSafetyFrames = 1;
+    public static int maxNormalCurrent = 6200, abnormalCurrentValidationFrames = 2, abnormalCurrentSafetyFrames = 1;
 
     public enum State {
         ON, OFF, PASSIVE_INTAKE, FEED_SHOOTER_PRECISE, FEED_SHOOTER_TELE_TOGGLE
@@ -45,14 +45,17 @@ public class Intake extends Subsystem {
 
     @Override
     public void updateState() {
+
         switch (state) {
             case OFF:
                 if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
                     setState(State.ON);
                     break;
                 }
-
-                motor.setPower(0);
+                if (keybinds.check(Keybinds.D1Trigger.MANUAL_OUTTAKE))
+                    motor.setPower(outtakePower);
+                else
+                    motor.setPower(0);
                 break;
             case ON:
                 if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
@@ -66,14 +69,17 @@ public class Intake extends Subsystem {
 
                 currentTracker.updateCurrentTracking();
 
-                if (keybinds.check(Keybinds.D1Trigger.MANUAL_OUTTAKE) || currentTracker.hasValidatedAbnormalCurrent())
+//                if (keybinds.check(Keybinds.D1Trigger.MANUAL_OUTTAKE) || currentTracker.hasValidatedAbnormalCurrent())
+                if (keybinds.check(Keybinds.D1Trigger.MANUAL_OUTTAKE))
                     motor.setPower(outtakePower);
                 else
                     motor.setPower(collectPower);
 
                 break;
             case PASSIVE_INTAKE:
-                if (robot.flipper.isMoving())
+                if (keybinds.check(Keybinds.D1Trigger.MANUAL_OUTTAKE))
+                    motor.setPower(outtakePower);
+                else if (robot.flipper.isMoving())
                     motor.setPower(weakPassivePower);
                 else
                     motor.setPower(passivePower);
@@ -84,7 +90,7 @@ public class Intake extends Subsystem {
                     break;
                 }
 
-                motor.setPower(feedShooterPower);
+                motor.setPower(getFeedShooterPower());
                 break;
             case FEED_SHOOTER_PRECISE:
                 updateNumBalls();
@@ -93,7 +99,7 @@ public class Intake extends Subsystem {
                     break;
                 }
 
-                motor.setPower(feedShooterPower);
+                motor.setPower(getFeedShooterPower());
                 break;
         }
     }
@@ -131,7 +137,7 @@ public class Intake extends Subsystem {
         }
         else if (state == State.FEED_SHOOTER_PRECISE) {
             officialNumBalls = -1;
-            motor.setPower(feedShooterPower);
+            motor.setPower(feedShooterNearZonePower);
             turnOnSensors(true);
         }
     }
@@ -171,5 +177,8 @@ public class Intake extends Subsystem {
         if (numConsecutiveValidatedFrames >= preciseTrackingValidationFrames ||  // validated value
                 officialNumBalls == 0 && unofficalNumBalls > 0) // better to overestimate than underestimate
             officialNumBalls = unofficalNumBalls;
+    }
+    private double getFeedShooterPower() {
+        return robot.shooter.getZone() == Shooter.Zone.NEAR ? feedShooterNearZonePower : feedShooterFarPower;
     }
 }

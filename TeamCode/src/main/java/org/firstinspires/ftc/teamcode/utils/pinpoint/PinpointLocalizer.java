@@ -13,6 +13,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
+import org.firstinspires.ftc.teamcode.robot.RGBLight;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 
 import java.util.Objects;
@@ -57,10 +58,15 @@ public final class PinpointLocalizer implements Localizer {
         txWorldPinpoint = initialPose;
     }
 
-    public void setInitialPose(Pose2d pose) {
+    public void resetPoseTo(Pose2d pose, long sleepTime) {
+        txPinpointRobot = new Pose2d(0, 0, 0);
         driver.resetPosAndIMU();
         txWorldPinpoint = pose;
-        txPinpointRobot = new Pose2d(0, 0, 0);
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
     @Override
     public void setPose(Pose2d pose) {

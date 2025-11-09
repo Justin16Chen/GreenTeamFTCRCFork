@@ -101,12 +101,11 @@ public class NineBallAuto extends OpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.setMsTransmissionInterval(20);
         CommandScheduler.getInstance().reset();
-        robot = new Robot(new Hardware(hardwareMap), telemetry, OpmodeType.AUTO, alliance);
+        Pose2d startPose = new Pose2d(drivePoses.startX, drivePoses.startY, Math.toRadians(drivePoses.startA));
+        robot = new Robot(new Hardware(hardwareMap), telemetry, OpmodeType.AUTO, alliance, startPose);
         robot.declareHardware();
         robot.setInputInfo(new Keybinds(new GamepadTracker(null), new GamepadTracker(null)));
 
-        Pose2d startPose = new Pose2d(drivePoses.startX, drivePoses.startY, Math.toRadians(drivePoses.startA));
-        robot.pinpoint.setInitialPose(startPose);
     }
 
     @Override
@@ -214,7 +213,7 @@ public class NineBallAuto extends OpMode {
         new SequentialCommandGroup(
                 // preload
                 shootPreloadDrive,
-//                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.shooterParams.maxSpeedUpTime),
+//                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
 //                robot.shootBallCommand(true, true),
 
                 // collect 1st 3
@@ -238,7 +237,7 @@ public class NineBallAuto extends OpMode {
                 ),
                 shoot1Drive,
 
-//                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.shooterParams.maxSpeedUpTime),
+//                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
 //                robot.shootBallCommand(true, false),
 
                 // collect 2nd 3
@@ -254,7 +253,7 @@ public class NineBallAuto extends OpMode {
                 ),
 //
 //                // shoot 2nd 3
-//                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.shooterParams.maxSpeedUpTime),
+//                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
 //                robot.shootBallCommand(true, true),
 
                 // collect 3rd 3
@@ -269,7 +268,7 @@ public class NineBallAuto extends OpMode {
                         shoot3Drive
                 ),
 
-//                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.shooterParams.maxSpeedUpTime),
+//                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
 //                robot.shootBallCommand(true, true),
 
                 // end everything

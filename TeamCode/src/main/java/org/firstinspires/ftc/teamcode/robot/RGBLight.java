@@ -15,6 +15,7 @@ public class RGBLight extends Subsystem {
     }
     public static Params params = new Params();
     private ServoImplEx light;
+    public boolean updateSelf = true;
     public RGBLight(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
     }
@@ -43,24 +44,38 @@ public class RGBLight extends Subsystem {
             else if (robot.intake.getOfficialNumBalls() == 1)
                 light.setPosition(params.red);
         }
-        else {
+        else if (updateSelf) {
             if (robot.shooter.getState() == Shooter.State.TRACK_PASSIVE_SPEED)
                 light.setPosition(params.off);
             else {
-                int readiness = 0;
-                if (robot.shooter.canShoot())
-                    readiness = 2;
-                else if (robot.shooter.canShootExtraNear())
-                    readiness = 1;
-
-                if (readiness == 0)
-                    light.setPosition(params.red);
-                else if (readiness == 1)
-                    light.setPosition(params.yellow);
-                else
-                    light.setPosition(params.green);
+                if (robot.shooter.getZone() == Shooter.Zone.NEAR) {
+                    if (robot.shooter.getAvgMotorSpeed() > Shooter.nearParams.maxSpeed)
+                        light.setPosition(params.blue);
+                    else if (robot.shooter.getAvgMotorSpeed() > Shooter.nearParams.minSpeed)
+                        light.setPosition(params.green);
+                    else if (robot.shooter.getAvgMotorSpeed() > Shooter.nearParams.extraCloseMinSpeed)
+                        light.setPosition(params.yellow);
+                    else
+                        light.setPosition(params.red);
+                }
+                else {
+                    if (robot.shooter.getAvgMotorSpeed() > Shooter.farParams.maxSpeed)
+                        light.setPosition(params.blue);
+                    else if (robot.shooter.getAvgMotorSpeed() > Shooter.farParams.minSpeed)
+                        light.setPosition(params.green);
+                    else
+                        light.setPosition(params.red);
+                }
             }
         }
+    }
+
+    public void setColor(double color) {
+        updateSelf = false;
+        light.setPosition(color);
+    }
+    public void startUpdatingSelfAgain() {
+        updateSelf = true;
     }
 
     @Override

@@ -21,6 +21,7 @@ public class Keybinds {
         SHOOT_NEAR,
         SHOOT_FAR,
         APPLY_PINPOINT_RESET_POWERS,
+        TOGGLE_PARK_FOR_SHOOT,
         ENTER_PARK_MODE,
         RAISE_PARK
     }
@@ -48,6 +49,7 @@ public class Keybinds {
         gt2Triggers.put(D2Trigger.SHOOT_FAR, GamepadTracker::isDpadUpClicked);
         gt2Triggers.put(D2Trigger.SHOOT_NEAR, GamepadTracker::isDpadDownClicked);
         gt2Triggers.put(D2Trigger.APPLY_PINPOINT_RESET_POWERS, GamepadTracker::isRTPressed);
+        gt2Triggers.put(D2Trigger.TOGGLE_PARK_FOR_SHOOT, GamepadTracker::isXClicked);
         gt2Triggers.put(D2Trigger.ENTER_PARK_MODE, GamepadTracker::isLTClicked);
         gt2Triggers.put(D2Trigger.RAISE_PARK, GamepadTracker::isLTClicked);
     }

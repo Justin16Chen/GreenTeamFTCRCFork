@@ -39,15 +39,15 @@ public class Robot {
     public final Park park;
     public final RGBLight light;
     public Robot(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType) {
-        this(hardware, telemetry, opmodeType, defaultAlliance);
+        this(hardware, telemetry, opmodeType, defaultAlliance, new Pose2d(0, 0, 0));
     }
-    public Robot(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType, Alliance alliance) {
+    public Robot(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType, Alliance alliance, Pose2d startPose) {
         this.opmodeType = opmodeType;
         this.alliance = alliance;
         subsystems = new ArrayList<>();
         sensors = new ArrayList<>();
 
-        pinpoint = new PinpointLocalizer(hardware.hardwareMap, new Pose2d(0, 0, 0), telemetry);
+        pinpoint = new PinpointLocalizer(hardware.hardwareMap, startPose, telemetry);
         drivetrain = new Drivetrain(hardware, telemetry, opmodeType);
         subsystems.add(drivetrain);
         intake = new Intake(hardware, telemetry);
@@ -122,10 +122,15 @@ public class Robot {
                             intake.setState(Intake.State.OFF);
                             flipper.setState(Flipper.State.CLOSED);
                         }),
-                        new WaitCommand(Flipper.rotationTimeMs),
-                        returnToPassiveSpeed ?
-                                new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) :
-                                new InstantCommand(() -> {})
+                        new ParallelCommandGroup(
+                                new SequentialCommandGroup(
+                                        new WaitCommand(Flipper.rotationTimeMs),
+                                        returnToPassiveSpeed ?
+                                                new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) :
+                                                new InstantCommand(() -> {})
+                                )
+                        )
+
                 ),
                 shooter.shooterTrackerCommand()
         );

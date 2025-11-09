@@ -34,10 +34,9 @@ public class EverythingTele extends ParentOpMode {
     public void initiation() {
         CommandScheduler.getInstance().reset();
 
-        robot = new Robot(hardware, telemetry, OpmodeType.TELE, alliance);
+        robot = new Robot(hardware, telemetry, OpmodeType.TELE, alliance, new Pose2d(startX, startY, startA));
         robot.declareHardware();
         robot.setInputInfo(new Keybinds(g1, g2));
-        robot.pinpoint.setInitialPose(new Pose2d(startX, startY, startA));
     }
 
     @Override

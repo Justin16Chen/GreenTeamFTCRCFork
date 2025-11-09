@@ -4,17 +4,19 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
+import org.firstinspires.ftc.teamcode.utils.commands.SimpleCommand;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 public class Park extends Subsystem {
-    public static double stowPosition = 0.01, parkPosition = 0.99;
+    public static double stowPosition = 0.01, parkPosition = 0.99, shootPosition = 0.35;
     private ServoImplEx leftServo, rightServo;
-    private boolean enteredParkMode, up;
+    private boolean parkedForShoot, enteredParkMode, fullyUp;
     public Park(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
+        parkedForShoot = false;
         enteredParkMode = false;
-        this.up = false;
+        this.fullyUp = false;
     }
 
     @Override
@@ -26,9 +28,14 @@ public class Park extends Subsystem {
 
     @Override
     public void updateState() {
+        if (keybinds.check(Keybinds.D2Trigger.TOGGLE_PARK_FOR_SHOOT) && !enteredParkMode) {
+            parkedForShoot = !parkedForShoot;
+            setServoPositions(parkedForShoot ? shootPosition : stowPosition);
+        }
+
         if (keybinds.check(Keybinds.D2Trigger.RAISE_PARK) && enteredParkMode) {
-            up = !up;
-            setServoPositions(up ? parkPosition : stowPosition);
+            fullyUp = !fullyUp;
+            setServoPositions(fullyUp ? parkPosition : stowPosition);
         }
 
         if (!enteredParkMode && keybinds.check(Keybinds.D2Trigger.ENTER_PARK_MODE)) {
@@ -48,5 +55,9 @@ public class Park extends Subsystem {
     public void setServoPositions(double position) {
         leftServo.setPosition(position);
         rightServo.setPosition(position);
+    }
+
+    public boolean isParkedForShoot() {
+        return parkedForShoot;
     }
 }
