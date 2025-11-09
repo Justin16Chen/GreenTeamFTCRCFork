@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.commands.SimpleCommand;
 import org.firstinspires.ftc.teamcode.utils.misc.LineEquation;
 import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
+import org.firstinspires.ftc.teamcode.utils.misc.CubicEquation;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
@@ -47,13 +48,13 @@ public class Shooter extends Subsystem {
 
 //        public PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
 //        public LineEquation hoodEquation = new LineEquation(-0.00270229, 1.67168);
-        public LineEquation hoodEquation = new LineEquation(0, 0.65);
+        public CubicEquation hoodEquation = new CubicEquation(0.000007177106, -0.007655489, 2.715645, -319.70495);
     }
     public static ShootingTuning shooterParams = new ShootingTuning();
     public static HoodParams hoodParams = new HoodParams();
-    public static boolean ENABLE_TESTING = true;
+    public static boolean ENABLE_TESTING = false;
     public static long maxShootTimeMs = 5000;
-    public static double passivePower = 0.5, intakeOnPower = 0.75;
+    public static double passivePower = 0.35, intakeOnPower = 0.75;
 
     public enum State {
         OFF,
@@ -129,6 +130,9 @@ public class Shooter extends Subsystem {
                     setState(State.TRACK_SHOOTER_SPEED);
                     break;
                 }
+                if (ENABLE_TESTING)
+                    setMotorPowers(0);
+                else
                 setMotorPowers(passivePower);
                 break;
             case TRACK_SHOOTER_SPEED:
@@ -174,6 +178,8 @@ public class Shooter extends Subsystem {
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
             speedPidf.setTarget(targetSpeed);
+            if (robot.intake.getState() == Intake.State.OFF)
+                robot.intake.setState(Intake.State.PASSIVE_INTAKE);
         }
     }
     private void setMotorPowers(double power) {

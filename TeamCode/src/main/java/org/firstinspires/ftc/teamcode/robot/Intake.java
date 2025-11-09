@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Intake extends Subsystem {
-    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.35, feedShooterPower = 0.6;
+    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.4, feedShooterPower = 0.6;
     public static double minPreciseFeedShooterTime = 1;
     public static double preciseTrackingValidationFrames = 8;
     public static int maxNormalCurrent = 5800, abnormalCurrentValidationFrames = 2, abnormalCurrentSafetyFrames = 1;
