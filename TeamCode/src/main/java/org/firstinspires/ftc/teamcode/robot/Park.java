@@ -10,9 +10,10 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 public class Park extends Subsystem {
     public static double stowPosition = 0.01, parkPosition = 0.99;
     private ServoImplEx leftServo, rightServo;
-    private boolean up;
+    private boolean enteredParkMode, up;
     public Park(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
+        enteredParkMode = false;
         this.up = false;
     }
 
@@ -25,20 +26,16 @@ public class Park extends Subsystem {
 
     @Override
     public void updateState() {
-        if (keybinds.check(Keybinds.D2Trigger.TOGGLE_PARK_MODE)) {
-            if (robot.drivetrain.getState() == Drivetrain.State.TELE_SLOW_DRIVE && robot.drivetrain.hasParkSlowDriveScale())
-                robot.drivetrain.setState(Drivetrain.State.TELE_DRIVE);
-            else {
-                robot.drivetrain.setState(Drivetrain.State.TELE_SLOW_DRIVE);
-                robot.drivetrain.setParkSlowDriveScale();
-                robot.shooter.setState(Shooter.State.OFF);
-            }
+        if (keybinds.check(Keybinds.D2Trigger.RAISE_PARK) && enteredParkMode) {
+            up = !up;
+            setServoPositions(up ? parkPosition : stowPosition);
         }
 
-        if (keybinds.check(Keybinds.D2Trigger.RAISE_PARK)) {
-            up = !up;
-
-            setServoPositions(up ? parkPosition : stowPosition);
+        if (!enteredParkMode && keybinds.check(Keybinds.D2Trigger.ENTER_PARK_MODE)) {
+            robot.drivetrain.setState(Drivetrain.State.TELE_SLOW_DRIVE);
+            robot.drivetrain.setParkSlowDriveScale();
+            robot.shooter.setState(Shooter.State.OFF);
+            enteredParkMode = true;
         }
     }
 

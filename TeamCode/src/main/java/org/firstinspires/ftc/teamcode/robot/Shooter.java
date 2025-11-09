@@ -31,14 +31,13 @@ public class Shooter extends Subsystem {
 
              */
     public static class ShootingTuning {
-        public double maxSpeedUpTime = 5;
         public double minPower = -0.2;
-        public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.15;
+        public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.2;
         public double maxPowerSpeedErrorThreshold = 10;
-        public double nearZoneTargetSpeed = 390, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
+        public double nearZoneTargetSpeed = 360, nearZoneTargetConstantWeighting = 0.7, nearZoneTargetConstant = 0.93;
         public double nearZoneMinSpeed = 340, nearZoneExtraCloseMinSpeed = 315;
-        public double farZoneTargetSpeed = 400, farZoneTargetConstantWeighting = 0.7, farZoneTargetConstant = 0.93;
-        public double farZoneMinSpeed = 370;
+        public double farZoneTargetSpeed = 450, farZoneTargetConstantWeighting = 0.7, farZoneTargetConstant = 0.93;
+        public double farZoneMinSpeed = 440;
     }
 
     public static class HoodParams {
@@ -48,11 +47,11 @@ public class Shooter extends Subsystem {
 
 //        public PowerEquation hoodEquation = new PowerEquation(208446.467, -2.26426);
 //        public LineEquation hoodEquation = new LineEquation(-0.00270229, 1.67168);
-        public LineEquation hoodEquation = new LineEquation(-0.00268345, 1.64932);
+        public LineEquation hoodEquation = new LineEquation(0, 0.65);
     }
     public static ShootingTuning shooterParams = new ShootingTuning();
     public static HoodParams hoodParams = new HoodParams();
-    public static boolean ENABLE_TESTING = false;
+    public static boolean ENABLE_TESTING = true;
     public static long maxShootTimeMs = 5000;
     public static double passivePower = 0.5, intakeOnPower = 0.75;
 
@@ -109,10 +108,14 @@ public class Shooter extends Subsystem {
             }
         }
 
-        if (keybinds.check(Keybinds.D1Trigger.SHOOT_NEAR))
+        if (keybinds.check(Keybinds.D2Trigger.SHOOT_NEAR)) {
             zone = Zone.NEAR;
-        else if (keybinds.check(Keybinds.D1Trigger.SHOOT_FAR))
+            setTargetSpeed(shooterParams.nearZoneTargetSpeed);
+        }
+        else if (keybinds.check(Keybinds.D2Trigger.SHOOT_FAR)) {
             zone = Zone.FAR;
+            setTargetSpeed(shooterParams.farZoneTargetSpeed);
+        }
 
         switch (state) {
             case OFF:
@@ -208,7 +211,6 @@ public class Shooter extends Subsystem {
         telemetry.addLine();
         telemetry.addData("pid motor target", speedPidf.getTarget());
         telemetry.addData("pid motor power", pidMotorPower);
-        telemetry.addData("target speed", shooterParams.nearZoneTargetSpeed);
         telemetry.addData("actual avg speed", MathUtils.format3(getAvgMotorSpeed()));
         telemetry.addData("left speed", leftMotor.getVelocity(AngleUnit.DEGREES));
         telemetry.addData("right speed", rightMotor.getVelocity(AngleUnit.DEGREES));
@@ -242,7 +244,8 @@ public class Shooter extends Subsystem {
             }
             @Override
             public boolean isDone() {
-                return (robot.intake.getState() != Intake.State.PASSIVE_INTAKE && timer.seconds() >= 0.3) || num >= ShooterSpeedRecorder.recordAmountForEachShot;
+                boolean intakeDone = robot.intake.getState() != Intake.State.PASSIVE_INTAKE && robot.intake.getState() != Intake.State.FEED_SHOOTER_TELE_TOGGLE && robot.intake.getState() != Intake.State.FEED_SHOOTER_PRECISE;
+                return (intakeDone && timer.seconds() >= 0.3) || num >= ShooterSpeedRecorder.recordAmountForEachShot;
             }
         };
     }

@@ -120,14 +120,14 @@ public class Intake extends Subsystem {
         else if (state == State.OFF) {
             motor.setPower(0);
             turnOnSensors(false);
-            if (robot.opmodeType == OpmodeType.TELE &&
-                    robot.drivetrain.getState() == Drivetrain.State.TELE_SLOW_DRIVE &&
-                    !robot.drivetrain.hasParkSlowDriveScale())
+            if (robot.opmodeType == OpmodeType.TELE && robot.drivetrain.getState() == Drivetrain.State.TELE_SLOW_DRIVE)
                 robot.drivetrain.setState(Drivetrain.State.TELE_DRIVE);
         }
         else if (state == State.PASSIVE_INTAKE) {
             motor.setPower(passivePower);
             turnOnSensors(false);
+            if (robot.opmodeType == OpmodeType.TELE && robot.drivetrain.getState() == Drivetrain.State.TELE_SLOW_DRIVE)
+                robot.drivetrain.setState(Drivetrain.State.TELE_DRIVE);
         }
         else if (state == State.FEED_SHOOTER_PRECISE) {
             officialNumBalls = -1;

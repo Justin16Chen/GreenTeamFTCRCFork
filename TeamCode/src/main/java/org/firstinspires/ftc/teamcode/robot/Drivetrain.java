@@ -40,11 +40,12 @@ public class Drivetrain extends Subsystem {
     public static double parkLateralScale = 0.5, parkAxialScale = 0.5, parkHeadingScale = 0.4;
     public static double parkPreciseLateralTol = 3, parkPreciseAxialTol =  1.5, parkPreciseHeadingDegTol = 2;
     public static double parkBasicLateralTol = 3, parkBasicAxialTol = 2.5, parkBasicHeadingDegTol = 4;
-//    public static double redResetLateralPower = -0.5, redResetY
+    public static double redResetLateralPower = -0.6, redResetAxialPower = 0.5, blueResetLateralPower = 0.5, blueResetAxialPower = 0.5;
     private State state;
     private DcMotorEx fr, fl, br, bl;
     private final PIDFController headingLockRadPid;
     private double slowDriveLateralScale, slowDriveAxialScale, slowDriveHeadingScale;
+    boolean applyingResetPowersLastFrame = false;
 
     public Drivetrain(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType) {
         super(hardware, telemetry);
@@ -100,14 +101,21 @@ public class Drivetrain extends Subsystem {
     @Override
     public void updateState() {
         if (keybinds.check(Keybinds.D2Trigger.APPLY_PINPOINT_RESET_POWERS)) {
-
+            if (robot.alliance == Alliance.BLUE)
+                setDrivePowers(blueResetLateralPower, blueResetAxialPower, 0);
+            else
+                setDrivePowers(redResetLateralPower, redResetAxialPower, 0);
+            applyingResetPowersLastFrame = true;
+            return;
         }
-        if (keybinds.check(Keybinds.D2Trigger.RESET_PINPOINT_POSE)) {
+        if (applyingResetPowersLastFrame) {
+            applyingResetPowersLastFrame = false;
             setMotorPowers(0, 0, 0, 0);
             double x = robot.alliance == Alliance.BLUE ? Field.blueResetX : Field.redResetX;
             double angleRad = Math.toRadians(robot.alliance == Alliance.BLUE ? Field.blueResetADeg : Field.redResetADeg);
             Pose2d initialPose = new Pose2d(x, Field.resetY, angleRad);
             robot.pinpoint.setInitialPose(initialPose);
+            return;
         }
 
         double[] linearPowers;
