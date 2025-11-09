@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
 
-@Autonomous(name="AutoBlueTwelveBall")
+@Autonomous(name="AutoBlueTwelveBall", group="Twelve")
 public class BlueTwelveBallAuto extends TwelveBallAuto {
     public BlueTwelveBallAuto() {
         super(Alliance.BLUE);

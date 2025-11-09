@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 @Config
 public class Shooter extends Subsystem {
     public static boolean ENABLE_TESTING = false;
-    public static Zone defaultZone = Zone.NEAR;
+    public static Zone defaultZone = Zone.FAR;
 
     public void useCustomTargetSpeed(double targetSpeed) {
     }
@@ -57,7 +57,7 @@ public class Shooter extends Subsystem {
     public static ShootFarParams farParams = new ShootFarParams();
     public static HoodParams hoodParams = new HoodParams();
     public static long maxShootTimeMs = 5000;
-    public static double passivePower = 0.35, intakeOnPower = 0.75;
+    public static double passivePower = 0.35, intakeOnPower = 0.7;
 
     public enum State {
         OFF,
@@ -148,8 +148,10 @@ public class Shooter extends Subsystem {
                     setState(State.TRACK_PASSIVE_SPEED);
                     break;
                 }
+
                 if (keybinds.check(Keybinds.D1Trigger.START_SHOOTING) && robot != null)
                     robot.shootBallCommand(false, false).schedule();
+
 
                 if (!ENABLE_TESTING) {
                     if (zone == Zone.NEAR)

@@ -286,7 +286,7 @@ public class Intake extends Subsystem {
                 updateNumBalls();
                 double minTime = useAutoSlowFeedShooterPower ? minPreciseSlowFeedShooterTime : minPreciseFeedShooterTime;
                 double maxTime = useMaxPreciseFeedShooterTime ? maxFeedShooterTime : Double.MAX_VALUE;
-                if (officialNumBalls == 0 && stateTimer.seconds() > minTime) {
+                if (officialNumBalls == 0 && stateTimer.seconds() > minTime || stateTimer.seconds() > maxTime) {
                     setState(State.OFF);
                     break;
                 }

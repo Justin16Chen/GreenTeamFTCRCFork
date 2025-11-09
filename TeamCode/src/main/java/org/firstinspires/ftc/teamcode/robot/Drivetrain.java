@@ -30,13 +30,15 @@ public class Drivetrain extends Subsystem {
     }
     public static class TeleDriveParams {
         public double lateralScaling = 1, axialScaling = 1, headingScaling = 1;
-        public double minTeleLateralSpeed = 0.4, minTeleAxialSpeed = 0.4, minTeleTurnSpeed = 0.1, maxTeleTurnSpeed = 1, correctiveStrafeHeadingMultiplier = -0.15, minLateralSpeedForStrafeCorrection = 0.7;
+        public double minTeleLateralSpeed = 0.4, minTeleAxialSpeed = 0.4, minTeleTurnSpeed = 0.05, maxTeleTurnSpeed = 1, correctiveStrafeHeadingMultiplier = -0.15, minLateralSpeedForStrafeCorrection = 0.7;
         public double intakeLateralScale = 1, intakeAxialScale = 1, intakeHeadingScale = 0.7;
         public double parkLateralScale = 0.5, parkAxialScale = 0.5, parkHeadingScale = 0.4;
         public double parkPreciseLateralTol = 3, parkPreciseAxialTol =  1.5, parkPreciseHeadingDegTol = 2;
         public double parkBasicLateralTol = 3, parkBasicAxialTol = 2.5, parkBasicHeadingDegTol = 4;
         public double redResetLateralPower = -0.7, redResetAxialPower = 0.62, blueResetLateralPower = 0.7, blueResetAxialPower = 0.62;
     }
+
+    public static double fineAdjustPower = 0.12;
     public static HeadingLockParams headingLockParams = new HeadingLockParams();
     public static TeleDriveParams teleDriveParams = new TeleDriveParams();
     public static long resetPositionTimeDelayMs = 400, resetPositionDelayAfterTimeMs = 500;
@@ -131,11 +133,19 @@ public class Drivetrain extends Subsystem {
             return;
         }
 
+        if (g2.isDpadRightPressed()) {
+            setDrivePowers(0, 0, -fineAdjustPower);
+            return;
+        }
+        if (g2.isDpadLeftPressed()) {
+            setDrivePowers(0, 0, fineAdjustPower);
+            return;
+        }
+
         double[] linearPowers;
         switch (state) {
             case TELE_DRIVE:
                 linearPowers = calculateLinearPowersWithGamepadInput();
-
                 // auto aim
                 if (keybinds.check(Keybinds.D1Trigger.AUTO_AIM)) {
                     double headingPower = getHeadingLockPower(getTargetShootHeadingRad());
