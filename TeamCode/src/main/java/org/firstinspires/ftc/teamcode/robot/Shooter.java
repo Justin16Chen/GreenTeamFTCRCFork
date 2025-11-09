@@ -21,13 +21,15 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 @Config
 public class Shooter extends Subsystem {
     public static boolean ENABLE_TESTING = false;
-    public static Zone defaultZone = Zone.FAR;
+    public static Zone defaultZone = Zone.NEAR;
+
     public static class ShootNearParams {
         public double minPower = -0.2;
         public double maxPowerSpeedErrorThreshold = 10;
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.2;
-        public double targetSpeed = 360, targetConstantWeighting = 0.7, targetConstant = 0.93;
-        public double maxSpeed = 375, minSpeed = 350, extraCloseMinSpeed = 330;
+        public double targetSpeed = 360, targetConstantWeighting = 0.7, targetConstant = 0.94;
+        public double maxSpeed = 375, minSpeed = 355, extraCloseMinSpeed = 330;
+        public double maxSpeedUpTime = 7;
     }
     public static class ShootFarParams {
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.4;
@@ -67,6 +69,7 @@ public class Shooter extends Subsystem {
     private final ElapsedTime recordTimer;
     private double targetSpeed;
     private final ElapsedTime stateTimer;
+    private boolean shooting = false;
     public Shooter(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
         stateTimer = new ElapsedTime();
@@ -78,7 +81,7 @@ public class Shooter extends Subsystem {
         speedPidf = new PIDFController(0, 0, 0, 0);
         resetSpeedPIDToCurrentZone();
         speedPidf.setOutputBounds(0, 0.99);
-        setState(State.TRACK_PASSIVE_SPEED);
+        state = State.TRACK_PASSIVE_SPEED;
         ShooterSpeedRecorder.resetData();
     }
 
@@ -104,35 +107,41 @@ public class Shooter extends Subsystem {
             }
         }
 
-        if (keybinds.check(Keybinds.D2Trigger.SHOOT_NEAR)) {
-            zone = Zone.NEAR;
-            setTargetSpeed(nearParams.targetSpeed);
-        }
-        else if (keybinds.check(Keybinds.D2Trigger.SHOOT_FAR)) {
-            zone = Zone.FAR;
-            setTargetSpeed(farParams.targetSpeed);
-        }
+        if (keybinds.check(Keybinds.D2Trigger.SHOOT_NEAR))
+            setZone(Zone.NEAR);
+        else if (keybinds.check(Keybinds.D2Trigger.SHOOT_FAR))
+            setZone(Zone.FAR);
 
         switch (state) {
             case OFF:
-                if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL) || keybinds.check(Keybinds.D2Trigger.PREPARE_FLYWHEEL)) {
+                if (keybinds.check(Keybinds.D1Trigger.TRACK_SHOOTER_SPEED)) {
                     setState(State.TRACK_SHOOTER_SPEED);
+                    break;
+                }
+                if (keybinds.check(Keybinds.D2Trigger.INCREASE_SHOOTER_SPEED_STATE)) {
+                    setState(State.TRACK_PASSIVE_SPEED);
                     break;
                 }
                 break;
             case TRACK_PASSIVE_SPEED:
-                if (keybinds.check(Keybinds.D1Trigger.PREPARE_FLYWHEEL) || keybinds.check(Keybinds.D2Trigger.PREPARE_FLYWHEEL)) {
+                if (keybinds.check(Keybinds.D1Trigger.TRACK_SHOOTER_SPEED) || keybinds.check(Keybinds.D2Trigger.INCREASE_SHOOTER_SPEED_STATE)) {
                     setState(State.TRACK_SHOOTER_SPEED);
                     break;
                 }
-                if (ENABLE_TESTING)
-                    setMotorPowers(0);
-                else
+                if (keybinds.check(Keybinds.D2Trigger.DECREASE_SHOOTER_SPEED_STATE)) {
+                    setState(State.OFF);
+                    break;
+                }
+                if (!ENABLE_TESTING)
                     setMotorPowers(passivePower);
                 break;
             case TRACK_SHOOTER_SPEED:
+                if (keybinds.check(Keybinds.D2Trigger.DECREASE_SHOOTER_SPEED_STATE)) {
+                    setState(State.TRACK_PASSIVE_SPEED);
+                    break;
+                }
                 if (keybinds.check(Keybinds.D1Trigger.START_SHOOTING) && robot != null)
-                    robot.shootBallCommand(false, true).schedule();
+                    robot.shootBallCommand(false, false).schedule();
 
                 if (!ENABLE_TESTING) {
                     if (zone == Zone.NEAR)
@@ -174,6 +183,12 @@ public class Shooter extends Subsystem {
         if (state == State.OFF) {
             setMotorPowers(0);
             setRawServoPositions(hoodParams.downPosition);
+        }
+        else if (state == State.TRACK_PASSIVE_SPEED) {
+            if (ENABLE_TESTING)
+                setMotorPowers(0);
+            else
+                setMotorPowers(passivePower);
         }
         else if (state == State.TRACK_SHOOTER_SPEED) {
             speedPidf.reset();
@@ -272,6 +287,11 @@ public class Shooter extends Subsystem {
     public Zone getZone() {
          return zone;
     }
+    public void setZone(Zone zone) {
+        this.zone = zone;
+        resetSpeedPIDToCurrentZone();
+        setTargetSpeed(zone == Zone.NEAR ? nearParams.targetSpeed : farParams.targetSpeed);
+    }
 
     public boolean canShoot() {
         return zone == Zone.NEAR ? canShootThreeNear() : canShootThreeFar();
@@ -299,5 +319,12 @@ public class Shooter extends Subsystem {
         else {
             speedPidf.setPIDValues(farParams.shooterKp, farParams.shooterKi, farParams.shooterKd, farParams.shooterKf);
         }
+    }
+    public boolean isShooting() {
+        return shooting;
+    }
+
+    public void setShooting(boolean shooting) {
+        this.shooting = shooting;
     }
 }

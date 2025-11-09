@@ -39,7 +39,7 @@ public class Drivetrain extends Subsystem {
     }
     public static HeadingLockParams headingLockParams = new HeadingLockParams();
     public static TeleDriveParams teleDriveParams = new TeleDriveParams();
-    public static long resetPositionTimeDelayMs = 300, resetPositionDelayAfterTimeMs = 500;
+    public static long resetPositionTimeDelayMs = 400, resetPositionDelayAfterTimeMs = 500;
     public enum State {
         AUTONOMOUS,
         TELE_DRIVE,
@@ -49,7 +49,6 @@ public class Drivetrain extends Subsystem {
     private DcMotorEx fr, fl, br, bl;
     private final PIDFController headingLockRadPid;
     private double slowDriveLateralScale, slowDriveAxialScale, slowDriveHeadingScale;
-    boolean applyingResetPowersLastFrame = false;
     private final ElapsedTime stateTimer;
 
     public Drivetrain(Hardware hardware, Telemetry telemetry, OpmodeType opmodeType) {
@@ -112,23 +111,21 @@ public class Drivetrain extends Subsystem {
                 setDrivePowers(teleDriveParams.blueResetLateralPower, teleDriveParams.blueResetAxialPower, 0);
             else
                 setDrivePowers(teleDriveParams.redResetLateralPower, teleDriveParams.redResetAxialPower, 0);
-            applyingResetPowersLastFrame = true;
             return;
         }
-        if (applyingResetPowersLastFrame) {
-            applyingResetPowersLastFrame = false;
+        if (keybinds.check(Keybinds.D2Trigger.RESET_PINPOINT)) {
             setMotorPowers(0, 0, 0, 0);
             double x = robot.alliance == Alliance.BLUE ? Field.blueResetX : Field.redResetX;
             double angleRad = Math.toRadians(robot.alliance == Alliance.BLUE ? Field.blueResetADeg : Field.redResetADeg);
             Pose2d initialPose = new Pose2d(x, Field.resetY, angleRad);
 
-            robot.light.setColor(RGBLight.params.yellow);
+            robot.light.setColor(RGBLight.params.red);
             try {
                 Thread.sleep(resetPositionTimeDelayMs);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            robot.light.setColor(RGBLight.params.green);
+            robot.light.setColor(RGBLight.params.purple);
             robot.pinpoint.resetPoseTo(initialPose, resetPositionDelayAfterTimeMs);
             robot.light.startUpdatingSelfAgain();
             return;
@@ -265,15 +262,16 @@ public class Drivetrain extends Subsystem {
     public boolean headingWithinShootingTolerance() {
         return Math.abs(getTargetShootHeadingRad() - robot.pinpoint.pose().heading.toDouble()) < Math.toRadians(headingLockParams.headingTolDeg);
     }
-    public Command headingLockCommand() {
+    public Command headingLockCommand(double maxTime) {
         return new Command() {
+            private final ElapsedTime timer = new ElapsedTime();
             @Override
             public void execute() {
                 setDrivePowers(0, 0, getHeadingLockPower(getTargetShootHeadingRad()));
             }
             @Override
             public boolean isFinished() {
-                return headingWithinShootingTolerance();
+                return headingWithinShootingTolerance() || timer.seconds() >= maxTime;
             }
             @Override
             public void end(boolean interrupted) {

@@ -10,17 +10,19 @@ public class Keybinds {
         TOGGLE_INTAKE,
         MANUAL_OUTTAKE,
         AUTO_AIM,
-        PREPARE_FLYWHEEL,
+        TRACK_SHOOTER_SPEED,
         START_SHOOTING,
         CONTINUE_SHOOTING
     }
     public enum D2Trigger {
-        PREPARE_FLYWHEEL,
-        SET_PASSIVE_INTAKE,
+        INCREASE_SHOOTER_SPEED_STATE,
+        DECREASE_SHOOTER_SPEED_STATE,
+        TOGGLE_PASSIVE_INTAKE,
 
         SHOOT_NEAR,
         SHOOT_FAR,
         APPLY_PINPOINT_RESET_POWERS,
+        RESET_PINPOINT,
         TOGGLE_PARK_FOR_SHOOT,
         ENTER_PARK_MODE,
         RAISE_PARK
@@ -40,15 +42,17 @@ public class Keybinds {
         gt1Triggers.put(D1Trigger.TOGGLE_INTAKE, GamepadTracker::isRTClicked);
         gt1Triggers.put(D1Trigger.MANUAL_OUTTAKE, GamepadTracker::isLBPressed);
         gt1Triggers.put(D1Trigger.AUTO_AIM, GamepadTracker::isLTPressed);
-        gt1Triggers.put(D1Trigger.PREPARE_FLYWHEEL, GamepadTracker::isRBClicked);
+        gt1Triggers.put(D1Trigger.TRACK_SHOOTER_SPEED, GamepadTracker::isRBClicked);
         gt1Triggers.put(D1Trigger.START_SHOOTING, GamepadTracker::isRBClicked);
         gt1Triggers.put(D1Trigger.CONTINUE_SHOOTING, GamepadTracker::isRBPressed);
 
-        gt2Triggers.put(D2Trigger.PREPARE_FLYWHEEL, GamepadTracker::isAClicked);
-        gt2Triggers.put(D2Trigger.SET_PASSIVE_INTAKE, GamepadTracker::isAClicked);
+        gt2Triggers.put(D2Trigger.INCREASE_SHOOTER_SPEED_STATE, GamepadTracker::isYClicked);
+        gt2Triggers.put(D2Trigger.DECREASE_SHOOTER_SPEED_STATE, GamepadTracker::isAClicked);
+        gt2Triggers.put(D2Trigger.TOGGLE_PASSIVE_INTAKE, GamepadTracker::isBClicked);
         gt2Triggers.put(D2Trigger.SHOOT_FAR, GamepadTracker::isDpadUpClicked);
         gt2Triggers.put(D2Trigger.SHOOT_NEAR, GamepadTracker::isDpadDownClicked);
         gt2Triggers.put(D2Trigger.APPLY_PINPOINT_RESET_POWERS, GamepadTracker::isRTPressed);
+        gt2Triggers.put(D2Trigger.RESET_PINPOINT, GamepadTracker::isXClicked);
         gt2Triggers.put(D2Trigger.TOGGLE_PARK_FOR_SHOOT, GamepadTracker::isXClicked);
         gt2Triggers.put(D2Trigger.ENTER_PARK_MODE, GamepadTracker::isLTClicked);
         gt2Triggers.put(D2Trigger.RAISE_PARK, GamepadTracker::isLTClicked);

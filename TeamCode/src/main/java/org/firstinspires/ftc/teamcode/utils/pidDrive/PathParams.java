@@ -13,6 +13,7 @@ public class PathParams {
     public static double defaultHeadingKp = 0.6, defaultHeadingKi = 0.01, defaultHeadingKd = 0;
     public static double defaultLateralWeight = 1.2, defaultAxialWeight = 1; // weight the drive powers to correct for differences in driving
     public static double defaultMinSpeed = 0.2, defaultMaxSpeed = 1;
+    public static double defaultMaxTime = 2;
     public double lateralWeight, axialWeight;
     public double minSpeed, maxSpeed;
     public double minHeadingSpeed, maxHeadingSpeed;
@@ -36,7 +37,7 @@ public class PathParams {
         this.headingKi = pidCoefficients[4];
         this.headingKd = pidCoefficients[5];
 
-        maxTime = Double.MAX_VALUE;
+        maxTime = defaultMaxTime;
         minSpeed = defaultMinSpeed;
         maxSpeed = defaultMaxSpeed;
         minHeadingSpeed = 0;
@@ -53,7 +54,7 @@ public class PathParams {
         this.headingKi = headingKi;
         this.headingKd = headingKd;
 
-        maxTime = Double.MAX_VALUE;
+        maxTime = defaultMaxTime;
         minSpeed = defaultMinSpeed;
         maxSpeed = defaultMaxSpeed;
         minHeadingSpeed = 0;

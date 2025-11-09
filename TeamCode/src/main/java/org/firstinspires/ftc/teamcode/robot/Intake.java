@@ -14,10 +14,14 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Intake extends Subsystem {
-    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.4, feedShooterNearZonePower = 0.65, feedShooterFarPower = 0.5;
-    public static double minPreciseFeedShooterTime = 1;
-    public static double preciseTrackingValidationFrames = 8;
+    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.4, feedShooterNearZonePower = 0.6, feedShooterFarPower = 0.5, feedShooterNearAutoSlow = 0.4;
+    public static double minPreciseFeedShooterTime = 3;
+    public static double preciseTrackingValidationFrames = 10;
     public static int maxNormalCurrent = 6200, abnormalCurrentValidationFrames = 2, abnormalCurrentSafetyFrames = 1;
+
+    public void setUseAutoSlowFeedShooterPower(boolean b) {
+        this.useAutoSlowFeedShooterPower = true;
+    }
 
     public enum State {
         ON, OFF, PASSIVE_INTAKE, FEED_SHOOTER_PRECISE, FEED_SHOOTER_TELE_TOGGLE
@@ -30,6 +34,7 @@ public class Intake extends Subsystem {
 
     private int numConsecutiveValidatedFrames;
     private int officialNumBalls, unofficalNumBalls;
+    private boolean useAutoSlowFeedShooterPower = false;
     public Intake(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
         state = State.OFF;
@@ -62,7 +67,7 @@ public class Intake extends Subsystem {
                     setState(State.OFF);
                     break;
                 }
-                if (keybinds.check(Keybinds.D2Trigger.SET_PASSIVE_INTAKE) && robot.shooter.getState() == Shooter.State.TRACK_SHOOTER_SPEED && robot.shooter.getStateTime() > 0.1) {
+                if (keybinds.check(Keybinds.D2Trigger.TOGGLE_PASSIVE_INTAKE)) {
                     setState(State.PASSIVE_INTAKE);
                     break;
                 }
@@ -77,6 +82,14 @@ public class Intake extends Subsystem {
 
                 break;
             case PASSIVE_INTAKE:
+                if (keybinds.check(Keybinds.D2Trigger.TOGGLE_PASSIVE_INTAKE)) {
+                    setState(State.OFF);
+                    break;
+                }
+                if (keybinds.check(Keybinds.D1Trigger.TOGGLE_INTAKE)) {
+                    setState(State.ON);
+                    break;
+                }
                 if (keybinds.check(Keybinds.D1Trigger.MANUAL_OUTTAKE))
                     motor.setPower(outtakePower);
                 else if (robot.flipper.isMoving())
@@ -99,7 +112,10 @@ public class Intake extends Subsystem {
                     break;
                 }
 
-                motor.setPower(getFeedShooterPower());
+                if (useAutoSlowFeedShooterPower && robot.shooter.getZone() == Shooter.Zone.NEAR)
+                    motor.setPower(feedShooterNearAutoSlow);
+                else
+                    motor.setPower(getFeedShooterPower());
                 break;
         }
     }

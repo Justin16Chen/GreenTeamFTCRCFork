@@ -6,7 +6,6 @@ import com.arcrobotics.ftclib.command.Command;
 import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.commands.InstantCommand;
@@ -107,8 +106,11 @@ public class Robot {
     public Command shootBallCommand(boolean preciseIntaking, boolean returnToPassiveSpeed) {
         return new ParallelCommandGroup(
                 new SequentialCommandGroup(
-                        new InstantCommand(() -> intake.setState(Intake.State.PASSIVE_INTAKE)),
-                        new InstantCommand(() -> flipper.setState(Flipper.State.OPEN)),
+                        new InstantCommand(() -> {
+                            intake.setState(Intake.State.PASSIVE_INTAKE);
+                            flipper.setState(Flipper.State.OPEN);
+                            shooter.setShooting(true);
+                        }),
                         new WaitCommand(Flipper.rotationTimeMs),
                         new InstantCommand(() -> intake.setState(preciseIntaking ?
                                 Intake.State.FEED_SHOOTER_PRECISE :
@@ -121,15 +123,10 @@ public class Robot {
                         new InstantCommand(() -> {
                             intake.setState(Intake.State.OFF);
                             flipper.setState(Flipper.State.CLOSED);
-                        }),
-                        new ParallelCommandGroup(
-                                new SequentialCommandGroup(
-                                        new WaitCommand(Flipper.rotationTimeMs),
-                                        returnToPassiveSpeed ?
-                                                new InstantCommand(() -> shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED)) :
-                                                new InstantCommand(() -> {})
-                                )
-                        )
+                            shooter.setShooting(false);
+                            if (returnToPassiveSpeed)
+                                shooter.setState(Shooter.State.TRACK_PASSIVE_SPEED);
+                        })
 
                 ),
                 shooter.shooterTrackerCommand()

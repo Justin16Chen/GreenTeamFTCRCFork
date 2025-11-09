@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 public class Park extends Subsystem {
-    public static double stowPosition = 0.01, parkPosition = 0.99, shootPosition = 0.35;
+    public static double stowPosition = 0.01, parkPosition = 0.99, shootPosition = 0.3;
     private ServoImplEx leftServo, rightServo;
     private boolean parkedForShoot, enteredParkMode, fullyUp;
     public Park(Hardware hardware, Telemetry telemetry) {
@@ -28,10 +28,10 @@ public class Park extends Subsystem {
 
     @Override
     public void updateState() {
-        if (keybinds.check(Keybinds.D2Trigger.TOGGLE_PARK_FOR_SHOOT) && !enteredParkMode) {
-            parkedForShoot = !parkedForShoot;
-            setServoPositions(parkedForShoot ? shootPosition : stowPosition);
-        }
+//        if (keybinds.check(Keybinds.D2Trigger.TOGGLE_PARK_FOR_SHOOT) && !enteredParkMode) {
+//            parkedForShoot = !parkedForShoot;
+//            setServoPositions(parkedForShoot ? shootPosition : stowPosition);
+//        }
 
         if (keybinds.check(Keybinds.D2Trigger.RAISE_PARK) && enteredParkMode) {
             fullyUp = !fullyUp;
