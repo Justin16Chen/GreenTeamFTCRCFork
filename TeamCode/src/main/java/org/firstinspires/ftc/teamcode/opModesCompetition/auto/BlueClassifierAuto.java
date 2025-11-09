@@ -4,9 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
 
-@Autonomous(name="AutoBlueNineBall")
-public class BlueNineBallAuto extends NineBallAuto {
-    public BlueNineBallAuto() {
+@Autonomous(name="AutoBlueClassifier")
+public class BlueClassifierAuto extends ClassifierAuto {
+    public BlueClassifierAuto() {
         super(Alliance.BLUE);
     }
 }

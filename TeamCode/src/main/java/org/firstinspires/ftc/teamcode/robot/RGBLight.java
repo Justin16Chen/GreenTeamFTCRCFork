@@ -75,6 +75,8 @@ public class RGBLight extends Subsystem {
                         light.setPosition(params.blue);
                     else if (robot.shooter.getAvgMotorSpeed() > Shooter.farParams.minSpeed)
                         light.setPosition(params.green);
+                    else if (robot.shooter.getAvgMotorSpeed() > Shooter.farParams.extraCloseMinSpeed)
+                        light.setPosition(params.yellow);
                     else
                         light.setPosition(params.red);
                 }

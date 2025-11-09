@@ -10,11 +10,8 @@ import com.arcrobotics.ftclib.command.Command;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
-import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.command.WaitCommand;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.EverythingTele;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
@@ -35,11 +32,8 @@ import org.firstinspires.ftc.teamcode.utils.pidDrive.DrivePath;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.Tolerance;
 import org.firstinspires.ftc.teamcode.utils.pidDrive.Waypoint;
 
-import java.util.Collections;
-import java.util.Set;
-
 @Config
-public class NineBallAuto extends OpMode {
+public class ClassifierAuto extends OpMode {
     public static double fieldRotation = 90;
     public static class DrivePoses {
         public double startX = 33, startY = 62, startA = 90;
@@ -47,49 +41,60 @@ public class NineBallAuto extends OpMode {
         // first 3 balls
         public double collectX1 = 28, collectY1 = 15, collectA1 = 0;
         public double collectDriveThruX = 53.5, collectDriveThruY = 13, collectDriveThruA = 0;
+        public double gate1X = 49, gateY = 3, gateA = 0, gate2X = 55;
         // second 3 balls
-        public double collectX2 = 28, collectY2 = -10, collectA2 = 0;
+        public double collectX2 = 28, collectY2 = -8, collectA2 = 0;
         public double collect2DriveThruX = 58, collect2DriveThruY = -13, collect2DriveThruA = 0;
         public double collect2ShootX = 51, collect2ShootY = -13, collect2ShootA = 0;
+        public double collectX3 = 28, collectY3 = -28, collectA3 = 0;
+        public double collect3DriveThruX = 58, collect3DriveThruY = -36, collect3DriveThruA = 0;
     }
     public static class DriveTolerances {
         public double shootDistTol = 1.5, shootHeadingDegTol = 2;
         // first 3 balls
         public double collect1XTol = 3, collect1YTol = 1.5, collect1HeadingDegTol = 3;
         public double collectDriveThruDistTol = 2, collectDriveThruHeadingDegTol = 5;
+        public double gate1DistTol = 3, gate1HeadingTol = 5, gate2DistTol = 1.5, gate2HeadingTol = 3;
         // second 3 balls
         public double collect2XTol = 3, collect2YTol = 1.5, collect2HeadingDegTol = 3;
         public double collect2DriveThruDistTol = 2, collect2DriveThruHeadingDegTol = 5;
         public double collect2ShootDistTol = 2, collect2ShootHeadingDegTol = 3;
+        // third 3 balls
+        public double collect3XTol = 3, collect3YTol = 1.5, collect3HeadingDegTol = 3;
+        public double collect3DriveThruDistTol = 2, collect3DriveThruHeadingDegTol = 5;
     }
     public static class DriveParams {
         public double[] shootPIDs = { 0.07, 0, 0.01, 0.0175, 0, 0 };
-        public double shootMinSpeed = 0.55, shootPreloadLateralWeight = 1.3, shoot1LateralWeight = 1.1;
-        public double[] collect1PIDs = { 0.09, 0, 0, 0.019, 0, 0 };
+        public double shootMinSpeed = 0.3, shootPreloadLateralWeight = 1.3, shoot1LateralWeight = 1.1;
+        public double[] collect1PIDs = { 0.09, 0, 0, 0.015, 0, 0 };
         public double collect1MinSpeed = 0.4;
-        public double[] collectDriveThruPIDs = { 0.08, 0, 0, 0.015, 0, 0 };
+        public double[] collectDriveThruPIDs = { 0.085, 0, 0, 0.015, 0, 0 };
         public double collectDriveThruMaxSpeed = 0.75, collectDriveThruMinSpeed = 0.5;
-        public double[] collect2PIDs = { 0.065, 0, 0, 0.0165, 0, 0 };
-        public double collect2MaxSpeed = 0.65;
+        public double[] gatePIDs = { 0.08, 0, 0, 0.016, 0, 0 };
+        public double gateMaxSpeed = 1, gateSlowDown = 0.4, gate1MinSpeed = 0.7, gate2MinSpeed = 0.9;
+        public double[] collect2PIDs = { 0.065, 0, 0, 0.015, 0, 0 };
+        public double collect2MaxSpeed = 0.85;
         public double[] collect2DriveThruPIDs = { 0.08, 0, 0, 0.015, 0, 0 };
-        public double collect2DriveThruLateralWeight = 1.5;
         public double[] collect2ShootPIDs = { 0.05, 0, 0, 0.016, 0, 0 };
         public double collect2ShootSlowDown = 0.5;
-
+        public double[] collect3PIDs = { 0.075, 0, 0, 0.018, 0, 0 };
+        public double collect3MaxSpeed = 0.85;
+        public double[] collect3DriveThruPIDs = { 0.08, 0, 0, 0.015, 0, 0 };
         public double maxHeadingLockTime = 2;
     }
     public static class SubsystemParams {
         public long extraCollectTimeMs = 800;
+        public double gateWaitTime = 0.8;
+        public double pushGatePower = 0.5;
     }
     public static DrivePoses drivePoses = new DrivePoses();
     public static DriveTolerances driveTols = new DriveTolerances();
     public static DriveParams driveParams = new DriveParams();
     public static SubsystemParams subsystemParams = new SubsystemParams();
-    public static double driveOutOfZoneLateralPower = 1, driveOutOfZoneTime = 0.55;
     private Robot robot;
     private boolean done = false;
     public final Alliance alliance;
-    public NineBallAuto(Alliance alliance) {
+    public ClassifierAuto(Alliance alliance) {
         this.alliance = alliance;
     }
     @Override
@@ -101,9 +106,11 @@ public class NineBallAuto extends OpMode {
         Pose2d startPose = new Pose2d(drivePoses.startX, drivePoses.startY, Math.toRadians(drivePoses.startA));
         if (alliance == Alliance.BLUE)
             startPose = mirrorPose(startPose);
+
         robot = new Robot(new Hardware(hardwareMap), telemetry, OpmodeType.AUTO, alliance, startPose);
         robot.declareHardware();
         robot.setInputInfo(new Keybinds(new GamepadTracker(null), new GamepadTracker(null)));
+
     }
 
     @Override
@@ -111,17 +118,25 @@ public class NineBallAuto extends OpMode {
         Pose2d shootPose = new Pose2d(drivePoses.shootX, drivePoses.shootY, Math.toRadians(drivePoses.shootA));
         Pose2d collect1Pose = new Pose2d(drivePoses.collectX1, drivePoses.collectY1, Math.toRadians(drivePoses.collectA1));
         Pose2d collect1DriveThruPose = new Pose2d(drivePoses.collectDriveThruX, drivePoses.collectDriveThruY, Math.toRadians(drivePoses.collectDriveThruA));
+        Pose2d gate1Pose = new Pose2d(drivePoses.gate1X, drivePoses.gateY, Math.toRadians(drivePoses.gateA));
+        Pose2d gate2Pose = new Pose2d(drivePoses.gate2X, drivePoses.gateY, Math.toRadians(drivePoses.gateA));
         Pose2d collect2Pose = new Pose2d(drivePoses.collectX2, drivePoses.collectY2, Math.toRadians(drivePoses.collectA2));
         Pose2d collect2DriveThruPose = new Pose2d(drivePoses.collect2DriveThruX, drivePoses.collect2DriveThruY, Math.toRadians(drivePoses.collect2DriveThruA));
         Pose2d collect2ShootPose = new Pose2d(drivePoses.collect2ShootX, drivePoses.collect2ShootY, Math.toRadians(drivePoses.collect2ShootA));
+        Pose2d collect3Pose = new Pose2d(drivePoses.collectX3, drivePoses.collectY3, Math.toRadians(drivePoses.collectA3));
+        Pose2d collect3DriveThruPose = new Pose2d(drivePoses.collect3DriveThruX, drivePoses.collect3DriveThruY, Math.toRadians(drivePoses.collect3DriveThruA));
 
         if (alliance == Alliance.BLUE) {
             shootPose = mirrorPose(shootPose);
             collect1Pose = mirrorPose(collect1Pose);
             collect1DriveThruPose = mirrorPose(collect1DriveThruPose);
+            gate1Pose = mirrorPose(gate1Pose);
+            gate2Pose = mirrorPose(gate2Pose);
             collect2Pose = mirrorPose(collect2Pose);
             collect2DriveThruPose = mirrorPose(collect2DriveThruPose);
             collect2ShootPose = mirrorPose(collect2ShootPose);
+            collect3Pose = mirrorPose(collect3Pose);
+            collect3DriveThruPose = mirrorPose(collect3DriveThruPose);
         }
 
         Tolerance shootTol = new Tolerance(driveTols.shootDistTol, driveTols.shootHeadingDegTol);
@@ -139,6 +154,16 @@ public class NineBallAuto extends OpMode {
         collectDriveThruParams.minSpeed = driveParams.collectDriveThruMinSpeed;
         collectDriveThruParams.customEndCondition = () -> robot.pinpoint.pose().position.x >= drivePoses.collectDriveThruX;
 
+        Tolerance gate1Tol = new Tolerance(driveTols.gate1DistTol, driveTols.gate1HeadingTol);
+        Tolerance gate2Tol = new Tolerance(driveTols.gate2DistTol, driveTols.gate2HeadingTol);
+        PathParams gate1PathParams = new PathParams(driveParams.gatePIDs);
+        gate1PathParams.maxSpeed = driveParams.gateMaxSpeed;
+        gate1PathParams.minSpeed = driveParams.gate1MinSpeed;
+        gate1PathParams.slowDownPercent = driveParams.gateSlowDown;
+        PathParams gate2PathParams = new PathParams(driveParams.gatePIDs);
+        gate2PathParams.maxSpeed = driveParams.gateMaxSpeed;
+        gate2PathParams.minSpeed = driveParams.gate2MinSpeed;
+
         PathParams shoot1Params = new PathParams(driveParams.shootPIDs);
         shoot1Params.minSpeed = driveParams.shootMinSpeed;
         shoot1Params.lateralWeight = driveParams.shoot1LateralWeight;
@@ -149,7 +174,6 @@ public class NineBallAuto extends OpMode {
 
         Tolerance collect2DriveThruTol = new Tolerance(driveTols.collect2DriveThruDistTol, driveTols.collect2DriveThruHeadingDegTol);
         PathParams collect2DriveThruParams = new PathParams(driveParams.collect2DriveThruPIDs);
-        collect2DriveThruParams.lateralWeight = driveParams.collect2DriveThruLateralWeight;
         collect2DriveThruParams.maxSpeed = driveParams.collectDriveThruMaxSpeed;
         collect2DriveThruParams.minSpeed = driveParams.collectDriveThruMinSpeed;
         collect2DriveThruParams.customEndCondition = () -> robot.pinpoint.pose().position.x >= drivePoses.collect2DriveThruX;
@@ -158,43 +182,61 @@ public class NineBallAuto extends OpMode {
         PathParams collect2ShootParams = new PathParams(driveParams.collect2ShootPIDs);
         collect2ShootParams.slowDownPercent = driveParams.collect2ShootSlowDown;
 
+        Tolerance collect3Tol = new Tolerance(driveTols.collect3XTol, driveTols.collect3YTol, driveTols.collect3HeadingDegTol);
+        PathParams collect3Params = new PathParams(driveParams.collect3PIDs);
+        collect3Params.maxSpeed = driveParams.collect3MaxSpeed;
+
+        Tolerance collect3DriveThruTol = new Tolerance(driveTols.collect3DriveThruDistTol, driveTols.collect3DriveThruHeadingDegTol);
+        PathParams collect3DriveThruParams = new PathParams(driveParams.collect3DriveThruPIDs);
+        collect3DriveThruParams.maxSpeed = driveParams.collectDriveThruMaxSpeed;
+        collect3DriveThruParams.minSpeed = driveParams.collectDriveThruMinSpeed;
+        collect3DriveThruParams.customEndCondition = () -> robot.pinpoint.pose().position.x >= drivePoses.collect3DriveThruX;
+
         Waypoint shootPreloadWaypoint = new Waypoint(shootPose, shootTol, shootPreloadParams);
         Waypoint collect1Waypoint = new Waypoint(collect1Pose, collect1Tol, collect1Params);
         Waypoint collectDriveThruWaypoint = new Waypoint(collect1DriveThruPose, collectDriveThruTol, collectDriveThruParams);
+        Waypoint gate1Waypoint = new Waypoint(gate1Pose, gate1Tol, gate1PathParams);
+        Waypoint gate2Waypoint = new Waypoint(gate2Pose, gate2Tol, gate1PathParams);
         Waypoint shoot1Waypoint = new Waypoint(shootPose, shootTol, shoot1Params);
         Waypoint collect2Waypoint = new Waypoint(collect2Pose, collect2Tol, collect2Params);
         Waypoint collect2DriveThruWaypoint = new Waypoint(collect2DriveThruPose, collect2DriveThruTol, collect2DriveThruParams);
         Waypoint collect2ShootWaypoint = new Waypoint(collect2ShootPose, collect2ShootTol, collect2ShootParams);
+        Waypoint collect3Waypoint = new Waypoint(collect3Pose, collect3Tol, collect3Params);
+        Waypoint collect3DriveThruWaypoint = new Waypoint(collect3DriveThruPose, collect3DriveThruTol, collect3DriveThruParams);
 
-        DrivePath shootPreloadDrive = new DrivePath(robot.drivetrain, robot.pinpoint, shootPreloadWaypoint, telemetry);
-        DrivePath collectDrive = new DrivePath(robot.drivetrain, robot.pinpoint, collect1Waypoint, telemetry);
-        DrivePath collectDriveThru =  new DrivePath(robot.drivetrain, robot.pinpoint, collectDriveThruWaypoint, telemetry);
-        DrivePath shoot1Drive = new DrivePath(robot.drivetrain, robot.pinpoint, shoot1Waypoint, telemetry);
-        DrivePath collect2Drive = new DrivePath(robot.drivetrain, robot.pinpoint, collect2Waypoint, telemetry);
-        DrivePath collect2DriveThru = new DrivePath(robot.drivetrain, robot.pinpoint, collect2DriveThruWaypoint, telemetry);
-        DrivePath shoot2Drive = new DrivePath(robot.drivetrain, robot.pinpoint, shoot1Waypoint, telemetry);
+        DrivePath shootPreloadDrive = new DrivePath(robot.drivetrain, robot.pinpoint, shootPreloadWaypoint);
+        DrivePath collectDrive = new DrivePath(robot.drivetrain, robot.pinpoint, collect1Waypoint);
+        DrivePath collectDriveThru =  new DrivePath(robot.drivetrain, robot.pinpoint, collectDriveThruWaypoint);
+        DrivePath gateDrive = new DrivePath(robot.drivetrain, robot.pinpoint, gate2Waypoint);
+        gateDrive.addWaypoint(gate1Waypoint);
+        DrivePath shoot1Drive = new DrivePath(robot.drivetrain, robot.pinpoint, shoot1Waypoint);
+        DrivePath collect2Drive = new DrivePath(robot.drivetrain, robot.pinpoint, collect2Waypoint);
+        DrivePath collect2DriveThru = new DrivePath(robot.drivetrain, robot.pinpoint, collect2DriveThruWaypoint);
+        DrivePath shoot2Drive = new DrivePath(robot.drivetrain, robot.pinpoint, shoot1Waypoint);
         shoot2Drive.addWaypoint(collect2ShootWaypoint);
+        DrivePath collect3Drive = new DrivePath(robot.drivetrain, robot.pinpoint, collect3Waypoint);
+        DrivePath collect3DriveThru = new DrivePath(robot.drivetrain, robot.pinpoint, collect3DriveThruWaypoint);
+        DrivePath shoot3Drive = new DrivePath(robot.drivetrain, robot.pinpoint, shoot1Waypoint);
 
         robot.shooter.setZone(Shooter.Zone.NEAR);
         robot.shooter.setState(Shooter.State.TRACK_SHOOTER_SPEED);
-        robot.intake.setUseAutoSlowFeedShooterPower(true);
+        robot.intake.setUseAutoSlowFeedShooterPower(false);
 
         new SequentialCommandGroup(
                 // preload
                 shootPreloadDrive,
+
                 new ParallelCommandGroup(
                         new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
-                        robot.drivetrain.headingLockCommand(driveParams.maxHeadingLockTime)
+                        robot.drivetrain.headingLockCommand(driveParams.maxHeadingLockTime, 0)
                 ),
                 robot.shootBallCommand(true, true),
 
                 // collect 1st 3
                 collectDrive,
-                new InstantCommand(() -> {
-                    robot.intake.setState(Intake.State.ON);
-                    robot.shooter.setState(Shooter.State.TRACK_SHOOTER_SPEED);
-                }),
+                new InstantCommand(() -> robot.intake.setState(Intake.State.ON)),
                 collectDriveThru,
+                new InstantCommand(() -> robot.shooter.setState(Shooter.State.TRACK_SHOOTER_SPEED)),
 
                 // shoot 1st 3
                 new ParallelCommandGroup(
@@ -202,12 +244,13 @@ public class NineBallAuto extends OpMode {
                                 new WaitCommand(subsystemParams.extraCollectTimeMs),
                                 new InstantCommand(() -> robot.intake.setState(Intake.State.OFF))
                         ),
-                        shoot1Drive
+                        new SequentialCommandGroup(
+                                gateDrive,
+                                pushAgainstGateCommand()
+                        )
                 ),
-                new ParallelCommandGroup(
-                        new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
-                        robot.drivetrain.headingLockCommand(driveParams.maxHeadingLockTime)
-                ),
+                shoot1Drive,
+                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
                 robot.shootBallCommand(true, false),
 
                 // collect 2nd 3
@@ -221,74 +264,56 @@ public class NineBallAuto extends OpMode {
                         ),
                         shoot2Drive
                 ),
-//
-//                // shoot 2nd 3
-                new ParallelCommandGroup(
-                        new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
-                        robot.drivetrain.headingLockCommand(driveParams.maxHeadingLockTime)
-                ),
+                // shoot 2nd 3
+                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
                 robot.shootBallCommand(true, true),
 
-                // stop subsystems
+                // collect 3rd 3
+                collect3Drive,
+                new InstantCommand(() -> robot.intake.setState(Intake.State.ON)),
+                collect3DriveThru,
+                new ParallelCommandGroup(
+                        new SequentialCommandGroup(
+                                new WaitCommand(subsystemParams.extraCollectTimeMs),
+                                new InstantCommand(() -> robot.intake.setState(Intake.State.OFF))
+                        ),
+                        shoot3Drive
+                ),
+
+                new WaitUntilCommand(() -> robot.shooter.canShootThreeNear(), Shooter.nearParams.maxSpeedUpTime),
+                robot.shootBallCommand(true, true),
+
+                // end everything
                 new InstantCommand(() -> {
+                    done = true;
                     robot.shooter.setState(Shooter.State.OFF);
                     robot.intake.setState(Intake.State.OFF);
                     robot.flipper.setState(Flipper.State.CLOSED);
-                }),
-                driveOutOfZone(),
-                new InstantCommand(() -> done = true)
+                })
         ).schedule();
-    }
-
-    private Command driveOutOfZone() {
-        return new Command() {
-            private final ElapsedTime timer = new ElapsedTime();
-            @Override
-            public void initialize() {
-                timer.reset();
-            }
-            @Override
-            public void execute() {
-                if (alliance == Alliance.RED)
-                    robot.drivetrain.setDrivePowers(driveOutOfZoneLateralPower, 0, 0);
-                else
-                    robot.drivetrain.setDrivePowers(-driveOutOfZoneLateralPower, 0, 0);
-            }
-
-            @Override
-            public void end(boolean i) {
-                robot.drivetrain.setMotorPowers(0, 0, 0, 0);
-            }
-            @Override
-            public boolean isFinished() {
-                return timer.seconds() > driveOutOfZoneTime;
-            }
-
-            @Override
-            public Set<Subsystem> getRequirements() {
-                return Collections.emptySet();
-            }
-        };
     }
 
     @Override
     public void loop() {
-        CommandScheduler.getInstance().run();
-        if (!done) {
-            robot.update();
+         CommandScheduler.getInstance().run();
+         if (!done) {
+             robot.update();
 
-            if (robot.drivetrain.getState() != Drivetrain.State.AUTONOMOUS)
-                throw new IllegalStateException("drivetrain state of " + robot.drivetrain.getState() + " is not autonomous");
-            double x = robot.pinpoint.pose().position.x, y = robot.pinpoint.pose().position.y, heading = robot.pinpoint.pose().heading.toDouble();
-            TelemetryPacket packet = new TelemetryPacket();
-            Canvas fieldOverlay = packet.fieldOverlay();
-            fieldOverlay.setRotation(Math.toRadians(fieldRotation)); // rotate 90deg clockwise
-            fieldOverlay.strokeCircle(x, y, 5);
-            fieldOverlay.strokeLine(x, y, x + 5 * Math.cos(heading), y + 5 * Math.sin(heading));
-            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+             robot.shooter.printInfo();
+             robot.pinpoint.printInfo();
 
-            telemetry.update();
-        }
+             if (robot.drivetrain.getState() != Drivetrain.State.AUTONOMOUS)
+                 throw new IllegalStateException("drivetrain state of " + robot.drivetrain.getState() + " is not autonomous");
+             double x = robot.pinpoint.pose().position.x, y = robot.pinpoint.pose().position.y, heading = robot.pinpoint.pose().heading.toDouble();
+             TelemetryPacket packet = new TelemetryPacket();
+             Canvas fieldOverlay = packet.fieldOverlay();
+             fieldOverlay.setRotation(Math.toRadians(fieldRotation)); // rotate 90deg clockwise
+             fieldOverlay.strokeCircle(x, y, 5);
+             fieldOverlay.strokeLine(x, y, x + 5 * Math.cos(heading), y + 5 * Math.sin(heading));
+             FtcDashboard.getInstance().sendTelemetryPacket(packet);
+
+             telemetry.update();
+         }
     }
 
     private Pose2d mirrorPose(Pose2d pose) {
@@ -300,5 +325,18 @@ public class NineBallAuto extends OpMode {
         EverythingTele.startX = endPose.position.x;
         EverythingTele.startY = endPose.position.y;
         EverythingTele.startA = endPose.heading.toDouble();
+    }
+
+    private Command pushAgainstGateCommand() {
+        return new SimpleCommand() {
+            @Override
+            public void run() {
+                robot.drivetrain.setDrivePowers(0, subsystemParams.pushGatePower, 0);
+            }
+            @Override
+            public boolean isDone() {
+                return getTimeRunning() > subsystemParams.gateWaitTime;
+            }
+        };
     }
 }

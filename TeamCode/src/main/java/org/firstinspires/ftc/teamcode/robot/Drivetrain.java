@@ -262,12 +262,12 @@ public class Drivetrain extends Subsystem {
     public boolean headingWithinShootingTolerance() {
         return Math.abs(getTargetShootHeadingRad() - robot.pinpoint.pose().heading.toDouble()) < Math.toRadians(headingLockParams.headingTolDeg);
     }
-    public Command headingLockCommand(double maxTime) {
+    public Command headingLockCommand(double maxTime, double headingOffsetDeg) {
         return new Command() {
             private final ElapsedTime timer = new ElapsedTime();
             @Override
             public void execute() {
-                setDrivePowers(0, 0, getHeadingLockPower(getTargetShootHeadingRad()));
+                setDrivePowers(0, 0, getHeadingLockPower(getTargetShootHeadingRad() + Math.toRadians(headingOffsetDeg)));
             }
             @Override
             public boolean isFinished() {

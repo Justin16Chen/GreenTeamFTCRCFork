@@ -14,17 +14,193 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Intake extends Subsystem {
-    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.4, feedShooterNearZonePower = 0.6, feedShooterFarPower = 0.5, feedShooterNearAutoSlow = 0.4;
-    public static double minPreciseFeedShooterTime = 3;
-    public static double preciseTrackingValidationFrames = 10;
+    public static double collectPower = 0.99, outtakePower = -0.8, passivePower = 0.5, weakPassivePower = 0.4, feedShooterNearZonePower = 0.6, feedShooterFarPower = 0.54, feedShooterNearAutoSlow = 0.6;
+    public static double minPreciseSlowFeedShooterTime = 3, minPreciseFeedShooterTime = 1, maxFeedShooterTime = 2;
+    public static double preciseTrackingValidationFrames = 8;
     public static int maxNormalCurrent = 6200, abnormalCurrentValidationFrames = 2, abnormalCurrentSafetyFrames = 1;
 
     public void setUseAutoSlowFeedShooterPower(boolean b) {
-        this.useAutoSlowFeedShooterPower = true;
+        this.useAutoSlowFeedShooterPower = b;
     }
 
     public enum State {
         ON, OFF, PASSIVE_INTAKE, FEED_SHOOTER_PRECISE, FEED_SHOOTER_TELE_TOGGLE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     private State state;
@@ -35,6 +211,7 @@ public class Intake extends Subsystem {
     private int numConsecutiveValidatedFrames;
     private int officialNumBalls, unofficalNumBalls;
     private boolean useAutoSlowFeedShooterPower = false;
+    public boolean useMaxPreciseFeedShooterTime = false;
     public Intake(Hardware hardware, Telemetry telemetry) {
         super(hardware, telemetry);
         state = State.OFF;
@@ -107,7 +284,9 @@ public class Intake extends Subsystem {
                 break;
             case FEED_SHOOTER_PRECISE:
                 updateNumBalls();
-                if (officialNumBalls == 0 && stateTimer.seconds() > minPreciseFeedShooterTime) {
+                double minTime = useAutoSlowFeedShooterPower ? minPreciseSlowFeedShooterTime : minPreciseFeedShooterTime;
+                double maxTime = useMaxPreciseFeedShooterTime ? maxFeedShooterTime : Double.MAX_VALUE;
+                if (officialNumBalls == 0 && stateTimer.seconds() > minTime) {
                     setState(State.OFF);
                     break;
                 }

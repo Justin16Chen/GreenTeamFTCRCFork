@@ -23,6 +23,14 @@ public class Shooter extends Subsystem {
     public static boolean ENABLE_TESTING = false;
     public static Zone defaultZone = Zone.NEAR;
 
+    public void useCustomTargetSpeed(double targetSpeed) {
+    }
+
+    public void setCustomHoodOffset(double hoodOffset) {
+        this.customHoodOffset = hoodOffset;
+    }
+    private double customHoodOffset = 0;
+
     public static class ShootNearParams {
         public double minPower = -0.2;
         public double maxPowerSpeedErrorThreshold = 10;
@@ -33,8 +41,8 @@ public class Shooter extends Subsystem {
     }
     public static class ShootFarParams {
         public double shooterKp = 0.1, shooterKi = 0, shooterKd = 0, shooterKf = 0.4;
-        public double targetSpeed = 470, targetConstantWeighting = 0.7, targetConstant = 0.96;
-        public double maxSpeed = 500, minSpeed = 460;
+        public double targetSpeed = 480, targetConstantWeighting = 0.7, targetConstant = 0.96;
+        public double maxSpeed = 500, extraCloseMinSpeed = 460, minSpeed = 470;
     }
 
     public static class HoodParams {
@@ -151,6 +159,7 @@ public class Shooter extends Subsystem {
 
                     if (robot.park.isParkedForShoot())
                         targetHoodPos += hoodParams.shootParkOffset;
+                    targetHoodPos += customHoodOffset;
                     setRawServoPositions(targetHoodPos);
                 }
 
