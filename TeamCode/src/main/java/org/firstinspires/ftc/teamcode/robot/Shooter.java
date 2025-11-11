@@ -12,10 +12,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.opModesTesting.ShooterSpeedRecorder;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.commands.SimpleCommand;
-import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
-import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
-import org.firstinspires.ftc.teamcode.utils.misc.CubicEquation;
-import org.firstinspires.ftc.teamcode.utils.misc.QuadraticEquation;
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.math.PIDFController;
+import org.firstinspires.ftc.teamcode.utils.math.CubicEquation;
+import org.firstinspires.ftc.teamcode.utils.math.QuadraticEquation;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config

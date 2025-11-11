@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.utils.misc;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
+import org.firstinspires.ftc.teamcode.utils.math.AngleJavaClass;
+
 @Config
 public class AbsoluteAnalogEncoder {
     public static double DEFAULT_RANGE = 3.3;

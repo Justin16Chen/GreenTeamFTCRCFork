@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.robot.Flipper;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
-import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
 
 @TeleOp(name="Shooter Test", group = "Testing")
 @Config

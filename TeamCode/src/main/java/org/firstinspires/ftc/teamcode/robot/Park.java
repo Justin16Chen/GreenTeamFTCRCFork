@@ -4,8 +4,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
-import org.firstinspires.ftc.teamcode.utils.commands.SimpleCommand;
-import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 public class Park extends Subsystem {

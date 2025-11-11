@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
-import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
 import org.firstinspires.ftc.teamcode.utils.misc.MotorCurrentTracker;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 

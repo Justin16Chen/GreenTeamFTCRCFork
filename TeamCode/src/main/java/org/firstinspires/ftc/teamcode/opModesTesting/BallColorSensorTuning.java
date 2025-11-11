@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.robot.BallColorSensor;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
-import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
 
 @TeleOp(name="Ball Color Sensor Tuning", group="Utility")
 @Config

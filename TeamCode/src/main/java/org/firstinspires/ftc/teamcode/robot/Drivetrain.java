@@ -13,8 +13,8 @@ import org.firstinspires.ftc.teamcode.opModesCompetition.tele.Keybinds;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.misc.Field;
-import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
-import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.math.PIDFController;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 import java.util.Collections;

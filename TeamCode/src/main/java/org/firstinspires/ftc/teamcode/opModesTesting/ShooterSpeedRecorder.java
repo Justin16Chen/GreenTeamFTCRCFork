@@ -8,10 +8,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
-import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
 
 @Config
-@TeleOp(name="Shooter Speed Recorder")
+@TeleOp(name="Shooter Speed Recorder", group="Data Recording")
 public class ShooterSpeedRecorder extends OpMode {
     public static double recordIntervalMs = 50;
     public static int numDataEntries = 5;

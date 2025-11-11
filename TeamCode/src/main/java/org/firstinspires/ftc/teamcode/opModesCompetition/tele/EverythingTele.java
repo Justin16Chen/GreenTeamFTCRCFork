@@ -17,11 +17,11 @@ import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
+import org.firstinspires.ftc.teamcode.utils.misc.TelemetryHelper;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class EverythingTele extends ParentOpMode {
-    public static double fieldRotation = 90;
 
     public static double startX = 0, startY = 0, startA = 0;
     private Robot robot;
@@ -45,6 +45,15 @@ public class EverythingTele extends ParentOpMode {
         robot.update();
         CommandScheduler.getInstance().run();
 
+//        printRobotInfo();
+
+        TelemetryHelper.sendRobotPose(robot.pinpoint.pose(), robot.pinpoint.getNextPoseSimple());
+        TelemetryHelper.sendRobotPose(robot.pinpoint.pose(), robot.pinpoint.getNextPoseMultipleFrames());
+
+        telemetry.update();
+    }
+
+    private void printRobotInfo() {
         telemetry.addData("alliance", robot.alliance);
         telemetry.addLine("=====SUBSYSTEMS=====");
         for (Subsystem subsystem : robot.subsystems) {
@@ -57,15 +66,5 @@ public class EverythingTele extends ParentOpMode {
         telemetry.addLine();
         for (BallColorSensor colorSensor : robot.colorSensors)
             colorSensor.printInfo();
-
-        double x = robot.pinpoint.pose().position.x, y = robot.pinpoint.pose().position.y, heading = robot.pinpoint.pose().heading.toDouble();
-        TelemetryPacket packet = new TelemetryPacket();
-        Canvas fieldOverlay = packet.fieldOverlay();
-        fieldOverlay.setRotation(Math.toRadians(fieldRotation)); // rotate 90deg clockwise
-        fieldOverlay.strokeCircle(x, y, 5);
-        fieldOverlay.strokeLine(x, y, x + 5 * Math.cos(heading), y + 5 * Math.sin(heading));
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
-
-        telemetry.update();
     }
 }

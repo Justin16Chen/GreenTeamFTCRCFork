@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.utils.misc;
+package org.firstinspires.ftc.teamcode.utils.math;
 
 public class CubicEquation {
     public final double a, b, c, d;

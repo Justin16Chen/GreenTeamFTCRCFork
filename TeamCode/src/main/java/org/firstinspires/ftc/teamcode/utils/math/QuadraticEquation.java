@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.utils.misc;
+package org.firstinspires.ftc.teamcode.utils.math;
 
 public class QuadraticEquation {
     public final double a, b, c;

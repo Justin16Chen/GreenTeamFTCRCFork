@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.robot.Drivetrain;
-import org.firstinspires.ftc.teamcode.utils.misc.MathUtils;
-import org.firstinspires.ftc.teamcode.utils.misc.PIDFController;
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
+import org.firstinspires.ftc.teamcode.utils.math.PIDFController;
 import org.firstinspires.ftc.teamcode.utils.pinpoint.PinpointLocalizer;
 
 import java.util.ArrayList;
