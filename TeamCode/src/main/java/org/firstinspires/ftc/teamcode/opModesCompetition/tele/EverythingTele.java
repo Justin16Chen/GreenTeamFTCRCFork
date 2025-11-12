@@ -10,6 +10,7 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.opModesTesting.PosePredictionErrorRecorder;
 import org.firstinspires.ftc.teamcode.robot.Hardware;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.BallColorSensor;
@@ -17,7 +18,9 @@ import org.firstinspires.ftc.teamcode.utils.generalOpModes.Alliance;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.GamepadTracker;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.OpmodeType;
 import org.firstinspires.ftc.teamcode.utils.generalOpModes.ParentOpMode;
+import org.firstinspires.ftc.teamcode.utils.math.HeadingCorrect;
 import org.firstinspires.ftc.teamcode.utils.misc.TelemetryHelper;
+import org.firstinspires.ftc.teamcode.utils.pinpoint.OdoInfo;
 import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
@@ -26,6 +29,8 @@ public class EverythingTele extends ParentOpMode {
     public static double startX = 0, startY = 0, startA = 0;
     private Robot robot;
     public final Alliance alliance;
+
+    private Pose2d lastFramePredictedNextPose;
 
     public EverythingTele(Alliance alliance) {
         this.alliance = alliance;
@@ -37,6 +42,9 @@ public class EverythingTele extends ParentOpMode {
         robot = new Robot(hardware, telemetry, OpmodeType.TELE, alliance, new Pose2d(startX, startY, startA));
         robot.declareHardware();
         robot.setInputInfo(new Keybinds(g1, g2));
+
+        lastFramePredictedNextPose = new Pose2d(startX, startY, startA);
+        PosePredictionErrorRecorder.clearData();
     }
 
     @Override
@@ -45,11 +53,18 @@ public class EverythingTele extends ParentOpMode {
         robot.update();
         CommandScheduler.getInstance().run();
 
-//        printRobotInfo();
+        printRobotInfo();
 
-        TelemetryHelper.sendRobotPose(robot.pinpoint.pose(), robot.pinpoint.getNextPoseSimple());
-        TelemetryHelper.sendRobotPose(robot.pinpoint.pose(), robot.pinpoint.getNextPoseMultipleFrames());
+        Pose2d predictedPose = robot.pinpoint.getNextPoseSimple();
+        Pose2d actualPose = robot.pinpoint.pose();
+        TelemetryHelper.sendRobotPose(actualPose, predictedPose);
 
+        OdoInfo error = new OdoInfo(predictedPose.position.x - actualPose.position.x,
+                predictedPose.position.y - actualPose.position.y,
+                HeadingCorrect.correctHeadingErrorRad(predictedPose.heading.toDouble() - actualPose.heading.toDouble()));
+        PosePredictionErrorRecorder.predictionErrorsSimple.add(error);
+
+        lastFramePredictedNextPose = predictedPose;
         telemetry.update();
     }
 

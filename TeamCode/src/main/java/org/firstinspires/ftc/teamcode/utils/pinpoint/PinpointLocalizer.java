@@ -16,6 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.firstinspires.ftc.teamcode.utils.math.HeadingCorrect;
 import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -47,9 +48,10 @@ public final class PinpointLocalizer implements Localizer {
     private final Telemetry telemetry;
     // previousVelocities[0] = most recent
     // previousAccelerations[0] is most recent, calculated with previousVelocities[0] and previousVelocities[1]
-    private final double[][] previousVelocities, previousAccelerations;
+    private final ArrayList<OdoInfo> previousVelocities, previousAccelerations;
     private final double[] previousDeltaTimes;
     private double lastUpdateTimeMs;
+    private Pose2d lastPose;
     private int framesRunning;
 
     public PinpointLocalizer(HardwareMap hardwareMap, Pose2d initialPose, Telemetry telemetry) {
@@ -71,11 +73,12 @@ public final class PinpointLocalizer implements Localizer {
         driver.resetPosAndIMU();
 
         txWorldPinpoint = initialPose;
+        lastPose = initialPose;
 
         previousDeltaTimes = new double[posePredictParams.numPrevDeltaTimesToTrack];
         lastUpdateTimeMs = 0;
-        previousVelocities = new double[posePredictParams.numPrevVelocitiesToTrack][4]; // time, x, y, and heading velocity
-        previousAccelerations = new double[posePredictParams.numPrevVelocitiesToTrack - 1][3]; // x, y, and heading acceleration
+        previousVelocities = new ArrayList<>();  // each entry contains x, y, and heading velocity
+        previousAccelerations = new ArrayList<>(); // each entry contains x, y, and heading acceleration
 
         if (posePredictParams.accelerationWeights.length != posePredictParams.numPrevVelocitiesToTrack - 1)
             throw new IllegalArgumentException(("PosePredictParams has " + posePredictParams.accelerationWeights.length + " accelerationWeights but also specifies " + posePredictParams.numPrevVelocitiesToTrack + " velocities to track. These do not match"));
@@ -94,7 +97,8 @@ public final class PinpointLocalizer implements Localizer {
     public void resetPoseTo(Pose2d pose, long sleepTime) {
         txPinpointRobot = new Pose2d(0, 0, 0);
         driver.resetPosAndIMU();
-        txWorldPinpoint = pose;
+        txWorldPinpoint = new Pose2d(pose.position.x, pose.position.y, pose.heading.toDouble());;
+        lastPose = new Pose2d(pose.position.x, pose.position.y, pose.heading.toDouble());
         try {
             Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
@@ -116,13 +120,14 @@ public final class PinpointLocalizer implements Localizer {
         driver.update();
         if (Objects.requireNonNull(driver.getDeviceStatus()) == GoBildaPinpointDriver.DeviceStatus.READY) {
             framesRunning++;
+            lastPose = pose();
+
             txPinpointRobot = new Pose2d(driver.getPosX(DistanceUnit.INCH), driver.getPosY(DistanceUnit.INCH), driver.getHeading(UnnormalizedAngleUnit.RADIANS));
             double velX = driver.getVelX(DistanceUnit.INCH), velY = driver.getVelY(DistanceUnit.INCH), velHeadingRad = driver.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS);
             Vector2d worldVelocity = new Vector2d(velX, velY);
             Vector2d robotVelocity = Rotation2d.fromDouble(-txPinpointRobot.heading.log()).times(worldVelocity);
 
-            updateDeltaTimes();
-            updatePreviousVelocitiesAndAccelerations(velX, velY, velHeadingRad);
+            updatePreviousVelocitiesAndAccelerations();
 
             return new PoseVelocity2d(robotVelocity, driver.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS));
         }
@@ -153,52 +158,51 @@ public final class PinpointLocalizer implements Localizer {
         return dt;
     }
     public Pose2d getNextPoseSimple() {
-        double xVel = driver.getVelX(DistanceUnit.INCH);
-        double yVel = driver.getVelY(DistanceUnit.INCH);
-        double headingVelRad = driver.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS);
-        double correctedHeadingVelRad = HeadingCorrect.correctHeadingErrorRad(headingVelRad);
-
-        return new Pose2d(pose().position.x + xVel, pose().position.y + yVel, pose().heading.toDouble() + correctedHeadingVelRad);
+        return new Pose2d(pose().position.x + previousVelocities.get(0).x, pose().position.y + previousVelocities.get(0).y, pose().heading.toDouble() + previousVelocities.get(0).headingRad);
     }
     public Pose2d getNextPoseMultipleFrames() {
         // find weighted average of acceleration
-        double[] averageAcceleration = new double[3];
-        for (int i=0; i<previousAccelerations.length; i++)
-            for (int j = 0; j < previousAccelerations[0].length; j++)
-                averageAcceleration[j] += previousAccelerations[i][j] * posePredictParams.accelerationWeights[i];
+        OdoInfo weightedAcceleration = new OdoInfo();
+        for (int i=0; i<previousAccelerations.size(); i++) {
+            weightedAcceleration.x += previousAccelerations.get(i).x * posePredictParams.accelerationWeights[i];
+            weightedAcceleration.y += previousAccelerations.get(i).y * posePredictParams.accelerationWeights[i];
+            weightedAcceleration.headingRad += previousAccelerations.get(i).headingRad * posePredictParams.accelerationWeights[i];
+        }
 
         // predict the velocity of next frame
         // new velocity = old velocity + acceleration (velocities and acceleration are already in the correct units)
-        double[] nextVelocity = previousVelocities[0];
-        for (int i=1; i<4; i++)
-            nextVelocity[i] += averageAcceleration[i - 1];
+        OdoInfo nextVelocity = previousVelocities.get(0);
+        nextVelocity.x += weightedAcceleration.x;
+        nextVelocity.y += weightedAcceleration.y;
+        nextVelocity.headingRad += weightedAcceleration.headingRad;
 
         // predict the position of next frame
         // new position = old position + velocity
-        return new Pose2d(pose().position.x + nextVelocity[0], pose().position.y + nextVelocity[1], pose().heading.toDouble() + nextVelocity[2]);
+        return new Pose2d(pose().position.x + nextVelocity.x, pose().position.y + nextVelocity.y, pose().heading.toDouble() + nextVelocity.headingRad);
     }
-    private void updatePreviousVelocitiesAndAccelerations(double xVel, double yVel, double headingRadVel) {
-        double weightedDeltaTime = getWeightedDeltaTime();
+    private void updatePreviousVelocitiesAndAccelerations() {
+        // remove oldest velocity
+        previousVelocities.remove(previousVelocities.size() - 1);
 
-        // push velocities back
-        for (int i=previousVelocities.length - 1; i>0; i--)
-            previousVelocities[i] = previousVelocities[i - 1];
+        // add most recent velocity (change in position between this frame and last frame)
+        // technically units would be inches/deltaTime
+        Pose2d curPose = pose();
+        double dx = curPose.position.x - lastPose.position.x;
+        double dy = curPose.position.y - lastPose.position.y;
+        double dh = HeadingCorrect.correctHeadingErrorRad(curPose.heading.toDouble() - lastPose.heading.toDouble());
+        previousVelocities.add(0, new OdoInfo(dx, dy, dh));
 
-        // add most recent velocity (scaled by dt)
-        // velocity is already in in/sec, want to convert to distance traveled between this frame and last frame
-        previousVelocities[0][0] = xVel * weightedDeltaTime;
-        previousVelocities[0][1] = yVel * weightedDeltaTime;
-        previousVelocities[0][2] = headingRadVel * weightedDeltaTime;
-
-        // push acceleration back
-        for (int i=previousAccelerations.length - 1; i>0; i--)
-            previousAccelerations[i] = previousAccelerations[i - 1];
+        // remove oldest acceleration
+        previousAccelerations.remove(previousAccelerations.size() - 1);
 
         // update acceleration
         // acceleration = current velocity - old velocity
         // not dividing by time b/c velocity is already in the desired "time" unit - change from last frame to this frame
         // so this acceleration actually represents the change in velocity from last frame to this frame
-        for (int j=0; j<3; j++)
-            previousAccelerations[0][j] = (previousVelocities[0][j] - previousVelocities[1][j]);
+        previousAccelerations.add(0, new OdoInfo(
+                previousVelocities.get(0).x - previousVelocities.get(1).x,
+                previousVelocities.get(0).y - previousVelocities.get(1).y,
+                previousVelocities.get(0).headingRad - previousVelocities.get(1).headingRad
+        ));
     }
 }
