@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.utils.stateManagement.Subsystem;
 
 @Config
 public class Shooter extends Subsystem {
-    public static boolean ENABLE_TESTING = false;
+    public static boolean ENABLE_TESTING = true;
     public static Zone defaultZone = Zone.FAR;
 
     public void useCustomTargetSpeed(double targetSpeed) {

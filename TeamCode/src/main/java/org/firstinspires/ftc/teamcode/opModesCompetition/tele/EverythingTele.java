@@ -53,18 +53,33 @@ public class EverythingTele extends ParentOpMode {
         robot.update();
         CommandScheduler.getInstance().run();
 
-        printRobotInfo();
+//        printRobotInfo();
 
-        Pose2d predictedPose = robot.pinpoint.getNextPoseSimple();
+        telemetry.addData("velocity list size", robot.pinpoint.previousVelocities.size());
+        telemetry.addData("acceleration list size", robot.pinpoint.previousAccelerations.size());
+
         Pose2d actualPose = robot.pinpoint.pose();
-        TelemetryHelper.sendRobotPose(actualPose, predictedPose);
+        TelemetryHelper.sendRobotPose(actualPose, lastFramePredictedNextPose);
 
-        OdoInfo error = new OdoInfo(predictedPose.position.x - actualPose.position.x,
-                predictedPose.position.y - actualPose.position.y,
-                HeadingCorrect.correctHeadingErrorRad(predictedPose.heading.toDouble() - actualPose.heading.toDouble()));
+        OdoInfo error = new OdoInfo(lastFramePredictedNextPose.position.x - actualPose.position.x,
+                lastFramePredictedNextPose.position.y - actualPose.position.y,
+                HeadingCorrect.correctHeadingErrorRad(lastFramePredictedNextPose.heading.toDouble() - actualPose.heading.toDouble()));
         PosePredictionErrorRecorder.predictionErrorsSimple.add(error);
+        if (!robot.pinpoint.previousAccelerations.isEmpty())
+            PosePredictionErrorRecorder.acceleration.add(robot.pinpoint.previousAccelerations.get(0));
+        if (!robot.pinpoint.previousVelocities.isEmpty())
+            PosePredictionErrorRecorder.velocity.add(robot.pinpoint.previousVelocities.get(0));
 
-        lastFramePredictedNextPose = predictedPose;
+        Pose2d lastPose = robot.pinpoint.lastPose;
+        OdoInfo controlGroupError = new OdoInfo(lastPose.position.x - actualPose.position.x,
+                lastPose.position.y - actualPose.position.y,
+                lastPose.heading.toDouble() - actualPose.heading.toDouble()
+        );
+        PosePredictionErrorRecorder.controlGroupError.add(controlGroupError);
+
+        lastFramePredictedNextPose = robot.pinpoint.getNextPoseSimple();
+
+
         telemetry.update();
     }
 

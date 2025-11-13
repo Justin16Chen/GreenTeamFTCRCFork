@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.Pose2d;
 
+import org.firstinspires.ftc.teamcode.utils.math.MathUtils;
+
 public class OdoInfo {
     public double x, y, headingRad;
     public OdoInfo(double x, double y, double headingRad) {
@@ -20,5 +22,9 @@ public class OdoInfo {
     @Override
     public OdoInfo clone() {
         return new OdoInfo(x, y, headingRad);
+    }
+
+    public String toString(int numDecimalPlaces) {
+        return "x: " + MathUtils.format(x, numDecimalPlaces) + "y: " + MathUtils.format(y, numDecimalPlaces) + "h: " + MathUtils.format(headingRad, numDecimalPlaces);
     }
 }

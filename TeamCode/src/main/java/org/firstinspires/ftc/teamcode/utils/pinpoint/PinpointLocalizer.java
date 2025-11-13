@@ -48,10 +48,10 @@ public final class PinpointLocalizer implements Localizer {
     private final Telemetry telemetry;
     // previousVelocities[0] = most recent
     // previousAccelerations[0] is most recent, calculated with previousVelocities[0] and previousVelocities[1]
-    private final ArrayList<OdoInfo> previousVelocities, previousAccelerations;
+    public final ArrayList<OdoInfo> previousVelocities, previousAccelerations;
     private final double[] previousDeltaTimes;
     private double lastUpdateTimeMs;
-    private Pose2d lastPose;
+    public Pose2d lastPose;
     private int framesRunning;
 
     public PinpointLocalizer(HardwareMap hardwareMap, Pose2d initialPose, Telemetry telemetry) {
@@ -182,7 +182,8 @@ public final class PinpointLocalizer implements Localizer {
     }
     private void updatePreviousVelocitiesAndAccelerations() {
         // remove oldest velocity
-        previousVelocities.remove(previousVelocities.size() - 1);
+        if (previousVelocities.size() > posePredictParams.numPrevVelocitiesToTrack)
+            previousVelocities.remove(previousVelocities.size() - 1);
 
         // add most recent velocity (change in position between this frame and last frame)
         // technically units would be inches/deltaTime
@@ -193,16 +194,18 @@ public final class PinpointLocalizer implements Localizer {
         previousVelocities.add(0, new OdoInfo(dx, dy, dh));
 
         // remove oldest acceleration
-        previousAccelerations.remove(previousAccelerations.size() - 1);
+        if (previousAccelerations.size() > posePredictParams.numPrevVelocitiesToTrack - 1)
+            previousAccelerations.remove(previousAccelerations.size() - 1);
 
         // update acceleration
         // acceleration = current velocity - old velocity
         // not dividing by time b/c velocity is already in the desired "time" unit - change from last frame to this frame
         // so this acceleration actually represents the change in velocity from last frame to this frame
-        previousAccelerations.add(0, new OdoInfo(
-                previousVelocities.get(0).x - previousVelocities.get(1).x,
-                previousVelocities.get(0).y - previousVelocities.get(1).y,
-                previousVelocities.get(0).headingRad - previousVelocities.get(1).headingRad
-        ));
+        if (previousVelocities.size() > 1)
+            previousAccelerations.add(0, new OdoInfo(
+                    previousVelocities.get(0).x - previousVelocities.get(1).x,
+                    previousVelocities.get(0).y - previousVelocities.get(1).y,
+                    previousVelocities.get(0).headingRad - previousVelocities.get(1).headingRad
+            ));
     }
 }
