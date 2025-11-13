@@ -31,10 +31,9 @@ public final class PinpointLocalizer implements Localizer {
         public GoBildaPinpointDriver.EncoderDirection initialParDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD, initialPerpDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
     }
     public static class PosePredictParams {
-        public double startingDtEstimation = 0.1;
-        public int numPrevDeltaTimesToTrack = 10;
-        public double[] dtWeights = {0.3, 0.2, 0.15, 0.125, 0.075, 0.05, 0.03, 0.025, 0.025, 0.02 }; // MUST add up to 1
         public int numPrevVelocitiesToTrack = 4;
+        public double maxLinearSpeedPerSecond = 10, maxHeadingDegSpeedPerSecond = 20;
+        public boolean clampSpeeds = false;
         public double[] accelerationWeights = { 0.6, 0.3, 0.1 }; // MUST add up to 1
     }
 
@@ -49,7 +48,6 @@ public final class PinpointLocalizer implements Localizer {
     // previousVelocities[0] = most recent
     // previousAccelerations[0] is most recent, calculated with previousVelocities[0] and previousVelocities[1]
     public final ArrayList<OdoInfo> previousVelocities, previousAccelerations;
-    private final double[] previousDeltaTimes;
     private double lastUpdateTimeMs;
     public Pose2d lastPose;
     private int framesRunning;
@@ -75,7 +73,6 @@ public final class PinpointLocalizer implements Localizer {
         txWorldPinpoint = initialPose;
         lastPose = initialPose;
 
-        previousDeltaTimes = new double[posePredictParams.numPrevDeltaTimesToTrack];
         lastUpdateTimeMs = 0;
         previousVelocities = new ArrayList<>();  // each entry contains x, y, and heading velocity
         previousAccelerations = new ArrayList<>(); // each entry contains x, y, and heading acceleration
@@ -85,13 +82,6 @@ public final class PinpointLocalizer implements Localizer {
         double sumOfAccelWeights = Arrays.stream(posePredictParams.accelerationWeights).sum();
         if (Math.abs(sumOfAccelWeights - 1) > 0.00001)
             throw new IllegalArgumentException(("the acceleration weights in PosePredictParams do not add up to 1. They add up to " + sumOfAccelWeights));
-
-        if (posePredictParams.dtWeights.length != posePredictParams.numPrevDeltaTimesToTrack)
-            throw new IllegalArgumentException(("PosePredictParams has " + posePredictParams.dtWeights.length + " dtWeights but also specifies " + posePredictParams.numPrevDeltaTimesToTrack + " delta times to track. These do not match"));
-        double sumOfDtWeights = Arrays.stream(posePredictParams.dtWeights).sum();
-        if (Math.abs(sumOfDtWeights - 1) > 0.00001)
-            throw new IllegalArgumentException(("the dt weights in PosePredictParams do not add up to 1. They add up to " + sumOfDtWeights));
-
     }
 
     public void resetPoseTo(Pose2d pose, long sleepTime) {
@@ -139,28 +129,12 @@ public final class PinpointLocalizer implements Localizer {
         telemetry.addData("position (in)", MathUtils.format2(pose().position.x) + ", " + MathUtils.format2(pose().position.y));
         telemetry.addData("heading (deg)", MathUtils.format2(Math.toDegrees(pose().heading.toDouble())));
     }
-
-    private void updateDeltaTimes() {
-        for (int i=previousDeltaTimes.length - 1; i>0; i--)
-            previousDeltaTimes[i] = previousDeltaTimes[i - 1];
-
-        double currentTime = System.currentTimeMillis();
-        previousDeltaTimes[0] = currentTime - lastUpdateTimeMs;
-        lastUpdateTimeMs = currentTime;
-    }
-    private double getWeightedDeltaTime() {
-        if (framesRunning < posePredictParams.numPrevDeltaTimesToTrack)
-            return posePredictParams.startingDtEstimation;
-
-        double dt = 0;
-        for (int i=0; i<previousDeltaTimes.length; i++)
-            dt += previousDeltaTimes[i] * posePredictParams.dtWeights[i];
-        return dt;
-    }
+    // predicts on most recent velocity
     public Pose2d getNextPoseSimple() {
         return new Pose2d(pose().position.x + previousVelocities.get(0).x, pose().position.y + previousVelocities.get(0).y, pose().heading.toDouble() + previousVelocities.get(0).headingRad);
     }
-    public Pose2d getNextPoseMultipleFrames() {
+    // predicts based on acceleration
+    public Pose2d getNextPoseAdvanced() {
         // find weighted average of acceleration
         OdoInfo weightedAcceleration = new OdoInfo();
         for (int i=0; i<previousAccelerations.size(); i++) {
@@ -191,6 +165,19 @@ public final class PinpointLocalizer implements Localizer {
         double dx = curPose.position.x - lastPose.position.x;
         double dy = curPose.position.y - lastPose.position.y;
         double dh = HeadingCorrect.correctHeadingErrorRad(curPose.heading.toDouble() - lastPose.heading.toDouble());
+
+        // clamp linear and heading velocity
+        if (posePredictParams.clampSpeeds) {
+            double dt = (System.currentTimeMillis() - lastUpdateTimeMs) / 1000.0;
+            double linearSpeedPerSecond = Math.sqrt(dx * dx + dy * dy) / dt;
+            if (linearSpeedPerSecond > posePredictParams.maxLinearSpeedPerSecond) {
+                dx *= posePredictParams.maxLinearSpeedPerSecond / linearSpeedPerSecond;
+                dy *= posePredictParams.maxLinearSpeedPerSecond / linearSpeedPerSecond;
+            }
+            double headingSpeedPerSecond = dh / dt;
+            if (Math.abs(headingSpeedPerSecond) > Math.toRadians(posePredictParams.maxHeadingDegSpeedPerSecond))
+                dh = Math.signum(dh) * Math.toRadians(posePredictParams.maxHeadingDegSpeedPerSecond) * dt;
+        }
         previousVelocities.add(0, new OdoInfo(dx, dy, dh));
 
         // remove oldest acceleration
@@ -207,5 +194,6 @@ public final class PinpointLocalizer implements Localizer {
                     previousVelocities.get(0).y - previousVelocities.get(1).y,
                     previousVelocities.get(0).headingRad - previousVelocities.get(1).headingRad
             ));
+        lastUpdateTimeMs = System.currentTimeMillis();
     }
 }
